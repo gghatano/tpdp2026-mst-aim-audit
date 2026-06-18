@@ -12,6 +12,12 @@
   PYTHONPATH=scripts python scripts/01_run_attack.py --n-all 50 # スモーク
 """
 import sys, os, time, json, string, pickle, argparse, platform
+# BLAS/数値スレッドを 1 に固定（numpy import 前に必須）。多数 worker 並列時の
+# スレッド過剰割り当て（oversubscription）を防ぎ、worker 数 = 実コア数で素直に並列化する。
+# spawn された子プロセスもモジュール先頭でこの設定を再適用する。
+for _v in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS",
+           "NUMEXPR_NUM_THREADS", "VECLIB_MAXIMUM_THREADS"):
+    os.environ.setdefault(_v, "1")
 import numpy as np
 import pandas as pd
 from itertools import product
