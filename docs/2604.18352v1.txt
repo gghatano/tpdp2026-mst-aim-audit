@@ -1,0 +1,261 @@
+arXiv:2604.18352v1 [cs.CR] 20 Apr 2026
+
+Tight Auditing of Differential Privacy in MST and AIM
+Georgi Ganev1,2 Meenatchi Sundaram Muthu Selva Annamalai1 Bogdan Kulynych3 1UCL 2SAS 3Lausanne University Hospital georgi.ganev.16@ucl.ac.uk
+Abstract
+State-of-the-art Differentially Private (DP) synthetic data generators such as MST and AIM are widely used, yet tightly auditing their privacy guarantees remains challenging. We introduce a Gaussian Differential Privacy (GDP)-based auditing framework that measures privacy via the full false-positive/false-negative tradeoff. Applied to MST and AIM under worst-case settings, our method provides the first tight audits in the strong-privacy regime. For (, ) = (1, 10-2), we obtain µemp  0.43 vs. implied µ = 0.45, showing a small theory-practice gap. Our code is publicly available: https://github.com/sassoftware/dpmm.
+1 Introduction
+Privacy-preserving synthetic data, supported by formal guarantees such as Differential Privacy (DP) [11, 13], offers a promising approach for sharing sensitive tabular data while protecting individual privacy. Under this paradigm, a generative model is trained on the sensitive data with carefully calibrated noise so its outputs (e.g., model parameters/generated samples) are approximately indistinguishable with respect to the inclusion/exclusion of any individual record (typically formalized by the privacy parameters (, )). Then, the trained model can serve as a proxy for the original data, enabling the release of either the model or synthetic datasets sampled from it.
+Among the rich literature on DP generative models [9, 22], MST [28] and AIM [29] consistently demonstrate strong privacy-utility tradeoffs [7, 15, 17, 41]. They have won a NIST competition [33], been integrated into popular libraries [24, 35, 36], and supported a UK census data release [34]. Both follow the select-measure-generate paradigm [26, 28]: selecting low-order marginals, measuring them with Gaussian noise, and generating synthetic data preserving these marginals.
+Given the importance and widespread use of MST and AIM, it is essential to empirically validate their DP guarantees. This motivates DP auditing [2], which quantifies privacy leakage by framing evaluation as a distinguishing game aligned with the DP definition, often realized via Membership Inference Attacks (MIAs) [20, 39] (which assess the influence of a target record on the model). The resulting leakage estimates are then compared to the claimed DP parameters to verify implementation correctness [1, 31, 32, 40] or reveal potential violations [1, 6, 16, 19, 23].
+Although prior work has investigated DP auditing for MST [1, 24], important gaps remain. First, existing audits provide limited insight in the strong-privacy regime (e.g.,  = 1), yielding loose/null results unless the implementation exhibits issues such as data domain leakage or floating-point vulnerabilities. Second, prior studies report results for a single (, ) setting rather than characterizing the full privacy tradeoff, which can lead to incomplete or even misleading conclusions [18].
+In this paper, we close these gaps by developing a Gaussian DP (GDP) [10] auditing framework for DP synthetic data generators. Building on prior empirical audits [1], we adopt the GDP view, which summarizes privacy via a single parameter µ capturing the full false-positive/negative tradeoff (FPR/FNR) of a strong-adversary MIA. We apply this framework to MST/AIM in a worst-case setup.
+Accepted to the 12th Theory and Practice of Differential Privacy Workshop (TPDP 2026).
+
+1.0
+
+Empirical audit
+
+-GDP (via -zCDP)
+
+-GDP (via ( , )-DP)
+
+0.8
+
+-zCDP (context) ( , )-DP (context)
+
+Random guess
+
+0.6
+
+FNR ( )
+
+0.4
+
+0.2
+
+0.00.0
+
+0.2
+
+0.4 FPR ( ) 0.6
+
+0.8
+
+1.0
+
+Figure 1: Empirical privacy tradeoff of MIA for MST/AIM compared to theoretical bounds under multiple DP
+notions. We report the full FPR­FNR tradeoff curve in the µ-GDP framework, enabling direct comparison between empirical leakage and theory. At (, ) = (1, 10-2), the empirical curve closely follows the implied
+µ-GDP bound derived via -zCDP (MST/AIM's accounting path), with µemp  0.43 vs. µ = 0.45.
+
+Main Contributions:
+
+· We present a GDP-centric auditing methodology that reports the full FPR­FNR tradeoff and places multiple DP notions on a common curve, rather than relying on a single (, ) value (see Fig. 1).
+· We provide the first systematic and tight empirical audit of MST and AIM in the strong-privacy regime. For (, ) = (1, 10-2), corresponding to an implied µ = 0.45, we obtain an empirical lower bound of µemp  0.43, showing a small gap between theory and practice.
+· We release our code to make GDP-based auditing reproducible and accessible to the community.
+
+2 DP Preliminaries
+Differential Privacy (DP) [11, 13] ensures that a randomized mechanism's output is insensitive to the inclusion/exclusion of any single record. We review the DP notions relevant to this work.
+(, )-DP. Approximate DP [11] relaxes pure DP by allowing a failure probability . Definition 2.1 ((, )-DP [11]). A randomized mechanism M : X  R is (, )-DP if for all neighboring datasets x, x  X and measurable sets S  R,
+Pr[M(x)  S]  e Pr[M(x)  S] + .
+-zCDP. Zero-concentrated DP (zCDP) [4] characterizes privacy via Rényi divergence [37] (D of order ) and enables tight analysis of Gaussian mechanisms. Definition 2.2 (-zCDP [4]). M satisfies -zCDP if for all neighboring x, x and all  > 1,
+D(M(x)M(x))  ,
+Theorem 2.3 (zCDP  DP [4]). If M is -zCDP, then for any  > 0 it is ( + 2  log(1/), )-DP.
+µ-GDP. Under the hypothesis-testing view of DP [see, e.g., 10], any DP mechanism limits the success of Membership Inference Attacks (MIAs) in the strong-adversary model, where the adversary knows M and two neighboring datasets x, x but not which was used. An MIA is defined by a hypothesis test  : dom(M)  [0, 1], with values close to 1 indicating that dataset x was used, and vice versa. For an MIA, we define  = 1 - EM(x)[] (FNR) and  = EM(x)[] (FPR). The tradeoff function T (M (x), M (x))() gives the minimal achievable FNR  at FPR level  (by Neyman-Pearson lemma [10]). Importantly for audits, any MIA must satisfy   .
+Gaussian DP (GDP) [10] characterizes privacy by lower bounding tradeoffs with a Gaussian curve: Definition 2.4 (µ-GDP [10]). A mechanism M is µ-GDP if for all neighboring x, x,
+T (M(x), M(x))()  Gµ()   [0, 1], where and Gµ = T (N (0, 1), N (µ, 1)).
+
+2
+
+Theorem 2.5 (zCDP  GDP [10]). If M is a Gaussian mechanism, or a composition of Gaussian mechanisms, satisfying -zCDP, then it satisfies µ-GDP with µ = 2. Theorem 2.6 (GDP  DP [10]). M is µ-GDP iff it is (, ())-DP for all   0, where
+
+µ () =  - +
+
+- e
+
+µ --
+
+.
+
+µ2
+
+µ2
+
+MST and AIM follow the select-measure-generate paradigm [26, 28]. They use the Exponential mechanism [12] to select informative marginals and the Gaussian mechanism [30] to measure counts. Both start from one-way marginals; MST selects pairwise marginals forming a maximum spanning tree, while AIM iteratively selects higher-order marginals based on estimated importance. Synthetic datasets are generated to match the noisy marginals via a graphical-model inference [27].
+Although privacy is specified as (, )-DP, both models internally convert this budget to a -zCDP guarantee using the Canonne et al. [5] conversion, selecting the smallest  that implies the target (, ) guarantee. Consistent with existing implementations [24, 25], we adopt this numerically stable (though suboptimal [3, 38]) conversion in our experiments.
+
+3 GDP Auditing Framework of MST and AIM
+We adopt the empirical DP auditing framework of Annamalai et al. [1], which views privacy auditing as a hypothesis test via a Membership Inference Attack (MIA). In short, a challenger trains many independent instances of a randomized mechanism on two neighboring datasets and provides their outputs to an adversary, who attempts to distinguish which dataset was used. The resulting falsepositive and false-negative rates define a point on the (, ) tradeoff curve, which can be compared to theoretical DP frontiers and converted to an empirical µ under µ-GDP. Next, we describe the components of the framework and our specific instantiation.
+MST and AIM. We study MST and AIM under a restricted configuration where only one-way marginals are measured. The dependency graph is fixed and no higher-order marginals are selected, so MST and AIM reduce to the same independent-marginal model (we relax this assumption in App. A). The full budget is allocated to these measurements, reducing the model to (Gaussian) noisy one-way marginals, which enables analysis in the µ-GDP framework. Also, we disable domain compression to avoid additional sources of bias [14] and use the implementation in the dpmm library [24], which, to our knowledge, has no known DP vulnerabilities/violations.
+Privacy Parameterization. As mentioned, both models convert the input (, )-DP budget to -zCDP. Because only Gaussian mechanisms are used, this  directly maps to a µ-GDP guarantee, which we treat as the theoretical target in our audits (we refer to it as implied µ).
+Neighboring Datasets and Target Record. We use a worst-case construction: Dout contains 10 identical records [0, 0, 0], and Din adds one target record [1, 1, 1]. This maximizes the target's influence on all marginals and yields a stringent privacy test. These worst-case settings are consistent with the DP definition and are often needed to obtain tight audits [1, 31, 32].
+Threat Model. We consider a hybrid black/white-box adversary. Black-box features are derived from synthetic data by evaluating all possible queries over the discrete domain, following the Querybased MIA [21], while white-box features consist of the model's internal noisy one-way marginal counts.
+DP Distinguishing Game. We train 10,000 independent models (5,000 per Dout/Din) with (, ) = (1, 10-2). Each model releases a synthetic dataset of size 50 and noisy marginals. The adversary receives balanced labeled outputs and splits them into 4,000 train, 2,000 validation, and 4,000 test samples. They train an XGBoost classifier [8] and select a decision threshold   on validation to maximize their advantage (defined by TPR-FPR). The test set is used only for final evaluation.
+Statistical Estimation of µ. Based on the adversary's predictions on Dtest, we compute the TPR and FPR. We then use a joint Bayesian approach inspired by Zanella-Béguelin et al. [42] and derive a lower bound µemp such that the corresponding µ-GDP region contains 90% posterior mass.
+This should be interpreted as a Bayesian lower bound on privacy. As noted by Nasr et al. [32], such bounds do not necessarily yield valid frequentist coverage, though they are often empirically tighter.
+
+3
+
+1.0
+
+Selected *
+
+0.8
+
+Empirical advantage Theory advantage ( -GDP) FPR ( )
+
+Theory (via -zCDP)
+
+0.4
+
+Empirical audit
+
+0.39 0.42 0.43
+
+FNR ( )
+
+0.32
+
+0.6
+
+0.3
+
+0.26
+
+0.28 0.30
+
+Rate emp
+
+0.2 0.4
+
+0.2
+
+0.00.0
+
+0.2
+
+0.4Threshold 0.6
+
+0.8
+
+1.0
+
+Figure 2: Threshold selection on validation data. FPR,
+FNR, and empirical advantage (TPR-FPR) as func-
+tions of the decision threshold. The selected threshold   ( 0.48) maximizes validation advantage.
+
+0.1
+
+0.0
+
+0.00
+
+Baseline
+
+Clopper Pears|oDnout| =R2andom ForeBsltack-boxWhite-box Default
+
+Figure 3: Ablation of audit choices and their effect on
+
+empirical privacy µemp on test data. "Default" is the
+
+main configuration; other bars modify one component
+
+at a time. Red line is the implied µ derived via -zCDP.
+
+4 Experimental Results
+
+In this section, we present the experimental evaluation of our GDP auditing framework on MST/AIM.
+Full FPR­FNR Tradeoff Curve. In Fig. 1, we show the empirical FPR­FNR tradeoff of our attack classifier across decision thresholds on the validation data, together with theoretical frontiers under multiple DP notions. Expressing all guarantees in the µ-GDP framework enables a direct comparison between empirical leakage and theory. We observe that the empirical curve (solid black line) closely tracks the µ implied by the mechanism's internal -zCDP accounting (solid red line), indicating that the implementation is consistent (and tight) with its privacy analysis.
+In contrast, the direct (, )  µ conversion (dashed red line) yields a larger µ (weaker privacy) than the µ implied by the (, )    µ accounting path used internally by MST/AIM. This gap arises because the intermediate zCDP step relies on a conservative (though numerically stable) (, )   conversion [5]. As a result, it enforces slightly stronger privacy (smaller µ) than the direct GDP interpretation, which may reduce the achievable utility for the same input (, ).
+Tight Audit. Next, in Fig. 2, we select the optimal decision threshold on validation data by maximizing empirical advantage, which exhibits smooth and stable behavior across thresholds. Applying this fixed threshold to the held-out test data yields a tight lower-bound estimate (see Fig. 3, "Default" configuration), with µemp  0.43 close to the implied µ = 0.45.
+This establishes, to the best of our knowledge, the first tight audit of MST/AIM in the strong-privacy regime ( = 1), as prior work reports zero empirical estimates [1, 24]. A small theory-practice gap remains, but it is substantially narrower than previously observed.
+Ablation Study. Finally, in Fig. 3, we report an ablation study on the test data, where we vary one audit component at a time: threshold selection criterion, lower-bound estimation, Dout size, classifier choice, and threat model. We also include a naive white-box baseline that estimates µ from single noisy marginal. From labeled in/out runs of this marginal, we compute a pooled variance and apply a 2 confidence bound to derive a lower bound on µ = / (with  = 1) under Gaussian noise. The "Default" configuration consistently yields the strongest (tightest) empirical lower-bound estimation. Additionally, in App. A, we audit MST/AIM trained with higher-order marginals.
+Notably, unstable threshold selection criteria (e.g., maximizing the estimated µ^ on validation data) can select overly small thresholds, leading to excessive FPR and collapsing the empirical lower bound to zero. This explains why prior work reports emp = 0 results in the strong-privacy regime [1, 24].
+
+5 Conclusion
+
+In this paper, we introduced a GDP-based auditing framework for MST and AIM that measures privacy through the full false-positive/false-negative tradeoff, enabling the first tight empirical audit in the strong-privacy regime. Beyond these two models, our framework readily extends to other DP generative approaches based on the Gaussian mechanism. We hope that our work (and the accompanying open-source implementation) will encourage researchers and practitioners to systematically validate the privacy guarantees of newly proposed and deployed synthetic data models.
+
+4
+
+References
+[1] Meenatchi Sundaram Muthu Selva Annamalai, Georgi Ganev, and Emiliano De Cristofaro. "What do you want from theory alone?" Experimenting with Tight Auditing of Differentially Private Synthetic Data Generation. In USENIX Security, 2024.
+[2] Meenatchi Sundaram Muthu Selva Annamalai, Borja Balle, Jamie Hayes, Georgios Kaissis, and Emiliano De Cristofaro. SoK: The Hitchhiker's Guide to Efficient, End-to-End, and Tight DP Auditing. In IEEE SaTML, 2026.
+[3] Shahab Asoodeh, Jiachun Liao, Flavio P Calmon, Oliver Kosut, and Lalitha Sankar. Three Variants of Differential Privacy: Lossless Conversion and Applications. IEEE JSAIT, 2021.
+[4] Mark Bun and Thomas Steinke. Concentrated Differential Privacy: Simplifications, Extensions, and Lower Bounds. In TCC, 2016.
+[5] Clément L Canonne, Gautam Kamath, and Thomas Steinke. The Discrete Gaussian for Differential Privacy. In NeurIPS, 2020.
+[6] Sílvia Casacuberta, Michael Shoemate, Salil Vadhan, and Connor Wagaman. Widespread Underestimation of Sensitivity in Differentially Private Libraries and How to Fix it. In ACM CCS, 2022.
+[7] Kai Chen, Xiaochen Li, Chen Gong, Ryan McKenna, and Tianhao Wang. Benchmarking Differentially Private Tabular Data Synthesis. PACMMOD, 2025.
+[8] Tianqi Chen and Carlos Guestrin. XGBoost: A Scalable Tree Boosting System. In ACM KDD, 2016.
+[9] Emiliano De Cristofaro. Synthetic Data: Methods, Use Cases, and Risks. IEEE S&P Magazine, 2024.
+[10] Jinshuo Dong, Aaron Roth, and Weijie J Su. Gaussian Differential Privacy. JRSSB, 2022.
+[11] Cynthia Dwork and Aaron Roth. The Algorithmic Foundations of Differential Privacy. Foundations and Trends in Theoretical Computer Science, 2014.
+[12] Cynthia Dwork, Krishnaram Kenthapadi, Frank McSherry, Ilya Mironov, and Moni Naor. Our data, ourselves: Privacy via distributed noise generation. In EuroCrypt, 2006.
+[13] Cynthia Dwork, Frank McSherry, Kobbi Nissim, and Adam Smith. Calibrating Noise to Sensitivity in Private Data Analysis. In TCC, 2006.
+[14] Georgi Ganev, Bristena Oprisanu, and Emiliano De Cristofaro. Robin Hood and Matthew Effects: Differential Privacy has Disparate Impact on Synthetic Data. In ICML, 2022.
+[15] Georgi Ganev, Kai Xu, and Emiliano De Cristofaro. Graphical vs. Deep Generative Models: Measuring the Impact of Differentially Private Mechanisms and Budgets on Utility. In ACM CCS, 2024.
+[16] Georgi Ganev, Meenatchi Sundaram Muthu Selva Annamalai, and Emiliano De Cristofaro. The Elusive Pursuit of Reproducing PATE-GAN: Benchmarking, Auditing, Debugging. TMLR, 2025.
+[17] Georgi Ganev, Meenatchi Sundaram Muthu Selva Annamalai, Sofiane Mahiou, and Emiliano De Cristofaro. The Importance of Being Discrete: Measuring the Impact of Discretization in End-to-End Differentially Private Synthetic Data. In ACM CCS, 2025.
+[18] Juan Felipe Gomez, Bogdan Kulynych, Georgios Kaissis, Flavio P Calmon, Jamie Hayes, Borja Balle, and Antti Honkela. Position: Gaussian DP for Reporting Differential Privacy Guarantees in Machine Learning. In IEEE SaTML, 2026.
+[19] Samuel Haney, Damien Desfontaines, Luke Hartman, Ruchit Shrestha, and Michael Hay. Precision-Based Attacks and Interval Refining: How to Break, then Fix, Differential Privacy on Finite Computers. In TPDP, 2022.
+[20] Jamie Hayes, Luca Melis, George Danezis, and Emiliano De Cristofaro. Logan: Membership Inference Attacks against Generative Models. In PoPETs, 2019.
+[21] Florimond Houssiau, James Jordon, Samuel N Cohen, Owen Daniel, Andrew Elliott, James Geddes, Callum Mole, Camila Rangel-Smith, and Lukasz Szpruch. TAPAS: A Toolbox for Adversarial Privacy Auditing of Synthetic Data. In NeurIPS Workshop on SyntheticData4ML, 2022.
+5
+
+[22] James Jordon, Lukasz Szpruch, Florimond Houssiau, Mirko Bottarelli, Giovanni Cherubin, Carsten Maple, Samuel N Cohen, and Adrian Weller. Synthetic Data­What, Why and How? arXiv:2205.03257, 2022.
+[23] Johan Lokna, Anouk Paradis, Dimitar I. Dimitrov, and Martin Vechev. Group and Attack: Auditing Differential Privacy. In ACM CCS, 2023.
+[24] Sofiane Mahiou, Amir Dizche, Reza Nazari, Xinmin Wu, Ralph Abbey, Jorge Silva, and Georgi Ganev. dpmm: Differentially Private Marginal Models, a Library for Synthetic Tabular Data Generation. In TPDP, 2025.
+[25] Ryan McKenna. private-pgm. https://github.com/ryan112358/private-pgm, 2019.
+[26] Ryan McKenna and Terrance Liu. A Simple Recipe for Private Synthetic Data Generation. DifferentialPrivacy.org, 2022. https://differentialprivacy.org/synth-data-1/.
+[27] Ryan McKenna, Daniel Sheldon, and Gerome Miklau. Graphical-Model Based Estimation and Inference for Differential Privacy. In ICML, 2019.
+[28] Ryan McKenna, Gerome Miklau, and Daniel Sheldon. Winning the NIST Contest: A Scalable and General Approach to Differentially Private Synthetic Data. JPC, 2021.
+[29] Ryan McKenna, Brett Mullins, Daniel Sheldon, and Gerome Miklau. AIM: An Adaptive and Iterative Mechanism for Differentially Private Synthetic Data. PVLDB, 2022.
+[30] Frank McSherry and Kunal Talwar. Mechanism Design via Differential Privacy. In FOCS, 2007.
+[31] Milad Nasr, Shuang Songi, Abhradeep Thakurta, Nicolas Papernot, and Nicholas Carlin. Adversary Instantiation: Lower Bounds for Differentially Private Machine Learning. In IEEE S&P, 2021.
+[32] Milad Nasr, Jamie Hayes, Thomas Steinke, Borja Balle, Florian Tramèr, Matthew Jagielski, Nicholas Carlini, and Andreas Terzis. Tight Auditing of Differentially Private Machine Learning. In USENIX Security, 2023.
+[33] NIST. 2018 Differential Privacy Synthetic Data Challenge. https://www.nist.gov/ ctl/pscr/open-innovation-prize-challenges/past-prize-challenges/2018differential-privacy-synthetic, 2018.
+[34] ONS. Synthesising the Linked 2011 Census and Deaths Dataset while Preserving its Confidentiality. https://datasciencecampus.ons.gov.uk/synthesising-the-linked-2011census-and-deaths-dataset-while-preserving-its-confidentiality/, 2023.
+[35] OpenDP. SmartNoise SDK: Tools for Differential Privacy on Tabular Data. https://github. com/opendp/smartnoise-sdk, 2021.
+[36] Zhaozhi Qian, Rob Davis, and Mihaela van der Schaar. Synthcity: A Benchmark Framework for Diverse Use Cases of Tabular Synthetic Data. In NeurIPS Datasets and Benchmarks Track, 2023. https://github.com/vanderschaarlab/synthcity.
+[37] Alfréd Rényi. On Measures of Entropy and Information. In Berkeley Symposium on Mathematical Statistics and Probability, 1961.
+[38] Anneliese Riess, Juan Felipe Gomez, Flavio du Pin Calmon, Julia Anne Schnabel, and Georgios Kaissis. Optimal Conversion from Rényi Differential Privacy to f -Differential Privacy. arXiv:2602.04562, 2026.
+[39] Reza Shokri, Marco Stronati, Congzheng Song, and Vitaly Shmatikov. Membership Inference Attacks against Machine Learning Models. In IEEE S&P, 2017.
+[40] Thomas Steinke, Milad Nasr, and Matthew Jagielski. Privacy Auditing with One (1) Training Run. In NeurIPS, 2023.
+[41] Yuchao Tao, Ryan McKenna, Michael Hay, Ashwin Machanavajjhala, and Gerome Miklau. Benchmarking differentially private synthetic data generation algorithms. In PPAI, 2022.
+[42] Santiago Zanella-Béguelin, Lukas Wutschitz, Shruti Tople, Ahmed Salem, Victor Rühle, Andrew Paverd, Mohammad Naseri, Boris Köpf, and Daniel Jones. Bayesian Estimation of Differential Privacy. In ICML, 2023.
+6
+
+0.426 0.4 0.390
+0.3
+0.2
+0.1
+
+0.429 0.432
+
+0.446 0.401
+
+Theory (via -zCDP) Empirical audit: 1-way marginals 21--wwaayy mmaarrggiinnaallss + 213---wwwaaayyy mmmaaarrrgggiiinnnaaalllsss ++
+
+emp
+
+0.0
+
+Black-box Default
+
+Black-box Default
+
+Black-box Default
+
+Figure 4: Empirical privacy µemp for MST/AIM trained with varying orders of marginals, comparing Black-box
+
+and "Default" (hybrid Black/White-box) threat models. Red line is the implied µ derived via -zCDP.
+
+A Auditing MST/AIM Trained with Higher-Order Marginals
+
+In this section, we relax the independent-marginal setting by training MST/AIM with higher-order marginals (2-way and 3-way), while keeping the dependency graph fixed. This moves closer to the full MST/AIM pipeline while still enabling analysis within the µ-GDP framework, as the privacy budget is entirely allocated to the Gaussian measurement step.
+Results for both the black-box and our "Default" (hybrid black/white-box) threat models are shown in Fig. 4. We find that incorporating higher-order marginals does not weaken the audit; on the contrary, it yields slightly tighter empirical estimates despite the increased noise per marginal due to budget splitting. In particular, we obtain µemp  0.44 for 3-way marginals, compared to µemp  0.43 for 1-way marginals (vs. implied µ = 0.45).
+Importantly, tight audits persist even in the black-box setting, which operates purely on synthetic data without access to internal noisy measurements. For example, with 2-way marginals, we achieve µemp  0.43, closely matching the implied guarantee. These results indicate that our findings are not specific to the independent-marginal case, but extend to more expressive marginal structures and realistic threat models.
+
+7
+
+

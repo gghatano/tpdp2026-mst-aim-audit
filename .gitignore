@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.uv/
+*.egg-info/
+
+# Reference clone of upstream (not part of this repo's history)
+reference/
+
+# Large / regenerable data
+data/*.csv
+data/*.parquet
+outputs/*.pkl
+outputs/*.npz
+
+# OS / editor
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Keep these tracked artifacts
+!figures/
+!outputs/metrics*.json
