@@ -91,42 +91,68 @@ def main():
     )
     queries = np.array(list(product([0, 1], repeat=C.N_COLS)))
     nf = len(queries) + 2 * len(columns)
-    data = {"out": np.zeros([N_ALL, nf]), "in": np.zeros([N_ALL, nf])}
-
-    tasks = [(i, df_out, df_in, columns, domain, queries) for i in range(N_ALL)]
     n_cpu = max(1, min(args.workers, cpu_count() - 1))
+    out_path = C.features_path(N_ALL)
+
+    # --- レジューム: 既存 pkl があれば読み、足りない分だけ追加生成する ---
+    # 各試行は secure RNG で i.i.d. のため、追記でターゲット件数まで積み増してよい。
+    # これにより、環境が長時間ジョブを kill しても再起動で続きから積める。
+    prev_out, prev_in = [], []
+    if out_path.exists():
+        with open(out_path, "rb") as fh:
+            prev = pickle.load(fh)
+        prev_out, prev_in = list(prev["out"]), list(prev["in"])
+        print(f"[attack] resume: {out_path.name} に既存 {len(prev_out)} 件。", flush=True)
+    remaining = max(0, N_ALL - len(prev_out))
     print(f"[attack] N_ALL={N_ALL} workers={n_cpu} eps={C.EPSILON} delta={C.DELTA} "
-          f"len_synth={C.LEN_SYNTH} n_features={nf}", flush=True)
+          f"len_synth={C.LEN_SYNTH} n_features={nf} remaining={remaining}", flush=True)
+
+    new_out, new_in = [], []
+    ckpt_every = max(50, N_ALL // 20)
+
+    def save(partial):
+        """既存 + 新規完了分を pkl に書き出す（アトミック置換）。"""
+        out_arr = np.array(prev_out + new_out) if (prev_out or new_out) else np.zeros((0, nf))
+        in_arr = np.array(prev_in + new_in) if (prev_in or new_in) else np.zeros((0, nf))
+        snap = {"out": out_arr, "in": in_arr, "n_done": len(out_arr)}
+        tmp = out_path.with_suffix(".pkl.tmp")
+        with open(tmp, "wb") as fh:
+            pickle.dump(snap, fh, protocol=pickle.HIGHEST_PROTOCOL)
+        tmp.replace(out_path)
+        print(f"[attack] {'checkpoint' if partial else 'final'} saved {out_path.name}: "
+              f"n_done={snap['n_done']}", flush=True)
 
     t0 = time.time()
     total_retries = 0
     done = 0
-    # maxtasksperchild を大きめにし、worker 再生成ごとの dpmm 再 import コスト（~10s）を償却する。
-    # DP ノイズは secure RNG のため process 再利用の有無は独立性に影響しない。
-    with Pool(processes=n_cpu, maxtasksperchild=25) as pool:
-        for i, out_row, in_row, retries in pool.imap_unordered(one_iteration, tasks, chunksize=1):
-            data["out"][i, :] = out_row
-            data["in"][i, :] = in_row
-            total_retries += retries
-            done += 1
-            if done % max(1, N_ALL // 20) == 0 or done == N_ALL:
-                el = time.time() - t0
-                print(f"[attack] {done}/{N_ALL}  elapsed={el:.0f}s  eta={el/done*(N_ALL-done):.0f}s  "
-                      f"retries={total_retries}", flush=True)
+    if remaining > 0:
+        tasks = [(i, df_out, df_in, columns, domain, queries) for i in range(remaining)]
+        # maxtasksperchild を大きめにし、worker 再生成ごとの dpmm 再 import（~10s）を償却。
+        with Pool(processes=n_cpu, maxtasksperchild=25) as pool:
+            for i, out_row, in_row, retries in pool.imap_unordered(one_iteration, tasks, chunksize=1):
+                new_out.append(out_row)
+                new_in.append(in_row)
+                total_retries += retries
+                done += 1
+                if done % max(1, remaining // 20) == 0 or done == remaining:
+                    el = time.time() - t0
+                    tot = len(prev_out) + done
+                    print(f"[attack] {tot}/{N_ALL} (+{done}/{remaining})  elapsed={el:.0f}s  "
+                          f"eta={el/done*(remaining-done):.0f}s  retries={total_retries}", flush=True)
+                if done % ckpt_every == 0:
+                    save(partial=True)
 
-    # NaN 行（恒常的失敗）を記録（除外は監査側で実施）
-    n_nan = int(np.isnan(data["out"]).any(axis=1).sum() + np.isnan(data["in"]).any(axis=1).sum())
     elapsed = time.time() - t0
-
-    out_path = C.features_path(N_ALL)
-    with open(out_path, "wb") as fh:
-        pickle.dump(data, fh, protocol=pickle.HIGHEST_PROTOCOL)
+    save(partial=False)
+    all_out = np.array(prev_out + new_out)
+    n_nan = int(np.isnan(all_out).any(axis=1).sum()) if len(all_out) else 0
 
     meta = {
-        "n_all": N_ALL, "workers": n_cpu, "epsilon": C.EPSILON, "delta": C.DELTA,
+        "n_all": N_ALL, "n_done": len(all_out), "added_this_run": done,
+        "workers": n_cpu, "epsilon": C.EPSILON, "delta": C.DELTA,
         "len_synth": C.LEN_SYNTH, "n_rows": C.N_ROWS, "n_cols": C.N_COLS,
         "n_features": nf, "elapsed_sec": round(elapsed, 1),
-        "per_fit_sec": round(elapsed / (2 * N_ALL), 3),
+        "per_fit_sec": round(elapsed / (2 * done), 3) if done else None,
         "total_retries": total_retries, "n_nan_rows": n_nan,
         "python": platform.python_version(),
     }

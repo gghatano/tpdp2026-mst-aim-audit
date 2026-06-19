@@ -28,7 +28,10 @@ def _clean(data):
 def _audit(out, in_, split, **over):
     cfg = dict(C.DEFAULT_AUDIT)
     cfg.update(over)
-    return run_audit(out, in_, n_train=split["n_train"], n_valid=split["n_valid"],
+    # run_audit は入力長 == n_train+n_valid+n_test を前提（AUC 計算が全行を使う）。
+    # 端数で余った行が AUC をずらすため、合計ちょうどに切り詰める。
+    tot = split["n_train"] + split["n_valid"] + split["n_test"]
+    return run_audit(out[:tot], in_[:tot], n_train=split["n_train"], n_valid=split["n_valid"],
                      n_test=split["n_test"], random_state=C.AUDIT_SEED, **cfg)
 
 
@@ -57,8 +60,12 @@ def main():
         "audit_seed": C.AUDIT_SEED, "default_config": C.DEFAULT_AUDIT,
     }
 
-    # --- 主結果（Default 構成、最大の実効サイズ） ---
-    main_split = C.SPLIT_MAIN
+    # --- 主結果（Default 構成、利用可能件数から 40/20/40 で分割） ---
+    def split_of(n):
+        return dict(n_train=int(n * 0.4), n_valid=int(n * 0.2), n_test=int(n * 0.4))
+
+    main_n = min(avail, C.N_ALL_MAIN)
+    main_split = split_of(main_n)
     res = _audit(data["out"], data["in"], main_split)
     pt = res["test"]["point"]
     metrics["main"] = {
@@ -77,16 +84,16 @@ def main():
                               for k in ["thresholds", "FPR", "FNR", "advantage", "mu_hat", "mu_lower"]}
     metrics["valid_curve"]["opt_t"] = float(cv["opt_t"])
 
-    # --- 収束（実効サイズ別） ---
+    # --- 収束（実効サイズ別。利用可能件数以下の規模を 40/20/40 で評価） ---
     conv = []
-    for s in C.CONVERGENCE_SIZES:
-        if s["size"] > avail:
+    for size in [250, 500, 1000, 1500, 2000, 2500]:
+        if size > main_n:
             continue
-        r = _audit(data["out"], data["in"], s)
+        r = _audit(data["out"], data["in"], split_of(size))
         p = r["test"]["point"]
-        conv.append({"size": s["size"], "mu_emp": p["mu_lower"], "mu_hat": p["mu_hat"],
+        conv.append({"size": size, "mu_emp": p["mu_lower"], "mu_hat": p["mu_hat"],
                      "auc_test": r["test"]["auc"]})
-        print(f"[audit] conv size={s['size']:>4}: mu_emp={p['mu_lower']:.4f} mu_hat={p['mu_hat']:.4f} "
+        print(f"[audit] conv size={size:>4}: mu_emp={p['mu_lower']:.4f} mu_hat={p['mu_hat']:.4f} "
               f"AUC={r['test']['auc']:.3f}")
     metrics["convergence"] = conv
 
