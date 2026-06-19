@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GDP / f-DP / FPR–FNR トレードオフ ——（ε,δ）から μ への橋渡し</title>
+<style>
+:root { --fg:#1a1a1a; --muted:#666; --accent:#c0392b; --line:#e3e3e3; --bg:#fff; --code:#f6f8fa; --sidebar:#fbfbfc; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { font-family: -apple-system,"Segoe UI","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;
+  color: var(--fg); background: #f3f4f6; line-height: 1.85; margin: 0; }
+.hero { background: linear-gradient(135deg,#2c3e50 0%,#c0392b 130%); color:#fff; padding: 36px 24px 0; }
+.hero .inner { max-width: 1180px; margin: 0 auto; }
+.hero h1 { margin: 0 0 .3em; font-size: 1.8rem; border: none; color:#fff; }
+.hero p { margin: .2em 0; opacity: .92; font-size: .94rem; }
+.hero a { color:#ffe; }
+.nav { max-width: 1180px; margin: 16px auto 0; display: flex; gap: 6px; }
+.nav a { padding: 9px 18px; border-radius: 8px 8px 0 0; background: rgba(255,255,255,.14); color:#fff;
+  text-decoration: none; font-size: .9rem; border: 1px solid rgba(255,255,255,.25); border-bottom: none; }
+.nav a.active { background: #f3f4f6; color: var(--accent); font-weight: 600; }
+.nav a:hover:not(.active) { background: rgba(255,255,255,.26); }
+.layout { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 250px 1fr; gap: 32px; padding: 24px 24px 96px; }
+nav.toc { position: sticky; top: 18px; align-self: start; max-height: calc(100vh - 36px); overflow-y: auto;
+  background: var(--sidebar); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; font-size: .86rem; }
+nav.toc strong { display: block; margin-bottom: 8px; color: var(--accent); }
+nav.toc ul { list-style: none; padding-left: 0; margin: 0; } nav.toc ul ul { padding-left: 12px; }
+nav.toc li { margin: 3px 0; } nav.toc a { color:#34495e; text-decoration: none; display: block; padding: 2px 0; }
+nav.toc a:hover { color: var(--accent); }
+article { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px 40px 56px;
+  box-shadow: 0 1px 10px rgba(0,0,0,.04); min-width: 0; }
+article > h1:first-of-type { display: none; }
+h2 { font-size: 1.45rem; margin-top: 2.2em; border-bottom: 1px solid var(--line); padding-bottom: .3em; scroll-margin-top: 16px; }
+h3 { font-size: 1.16rem; margin-top: 1.7em; color:#222; scroll-margin-top: 16px; }
+h4 { font-size: 1.0rem; margin-top: 1.3em; color: var(--accent); }
+a { color:#1565c0; text-decoration: none; } a:hover { text-decoration: underline; }
+a[href^="#ref"] { font-size:.72em; vertical-align:super; line-height:0; color:#1565c0; background:#eef4fb;
+  border:1px solid #cfe0f3; border-radius:4px; padding:0 4px; margin:0 1px; text-decoration:none; white-space:nowrap; }
+a[href^="#ref"]:hover { background:#d7e8fb; }
+:target { scroll-margin-top: 18px; }
+code { background: var(--code); padding: .15em .4em; border-radius: 4px; font-size: .88em;
+  font-family: "Cascadia Code",Consolas,"SF Mono",monospace; }
+pre { background: var(--code); padding: 15px 18px; border-radius: 8px; overflow-x: auto; border: 1px solid var(--line); }
+pre code { background: none; padding: 0; }
+table { border-collapse: collapse; width: 100%; margin: 1.2em 0; font-size: .9rem; display: block; overflow-x: auto; }
+th, td { border: 1px solid var(--line); padding: 8px 11px; text-align: left; white-space: nowrap; }
+th { background: #f2f4f7; font-weight: 600; } tr:nth-child(even) td { background: #fbfbfc; }
+img { max-width: 100%; height: auto; display: block; margin: 1.2em auto; border: 1px solid var(--line); border-radius: 8px; }
+.mermaid { background:#fff; border:1px solid var(--line); border-radius:8px; padding:14px; margin:1.4em 0; text-align:center; overflow-x:auto; }
+blockquote { border-left: 4px solid var(--accent); margin: 1.2em 0; padding: .4em 1.2em; background:#fdf3f2; color:#444; border-radius: 0 6px 6px 0; }
+blockquote.badge-doc { border-left-color:#1565c0; background:#eef4fb; color:#21303f; }
+blockquote.badge-note { border-left-color:#b9770e; background:#fdf6e9; color:#3a2e12; }
+blockquote.badge-legend { border-left-color:#607d8b; background:#eef1f3; color:#243; }
+hr { border: none; border-top: 1px solid var(--line); margin: 2.2em 0; }
+footer { max-width: 1180px; margin: 0 auto; padding: 24px; color: var(--muted); font-size: .85rem; text-align: center; }
+@media (max-width: 860px) { .layout { grid-template-columns: 1fr; } nav.toc { position: static; max-height: none; } article { padding: 12px 20px 40px; } }
+</style>
+</head>
+<body>
+<header class="hero"><div class="inner">
+  <h1>GDP / f-DP / FPR–FNR トレードオフ ——（ε,δ）から μ への橋渡し</h1>
+  <p>(ε,δ)-DP → ρ-zCDP → μ-GDP と FPR-FNR トレードオフ関数</p>
+</div><nav class="nav"><a href="index.html">📄 論文レポート</a><a href="gdp.html" class="active">🔧 GDP/トレードオフ</a><a href="mia.html">🔧 監査の仕組み</a><a href="mstaim.html">🔧 MST/AIM</a><a href="setup.html">⚙️ 環境構築・再現</a></nav></header>
+<div class="layout">
+  <nav class="toc"><strong>目次</strong><div class="toc">
+<ul>
+<li><a href="#1">1. なぜ単一の (ε,δ) でなく「曲線」で見るのか</a></li>
+<li><a href="#2-dp-3">2. DP の 3 つの見方と相互関係</a><ul>
+<li><a href="#21-dp-dp">2.1 (ε,δ)-DP（近似 DP）</a></li>
+<li><a href="#22-zcdpzero-concentrated-dp">2.2 ρ-zCDP（zero-Concentrated DP）</a></li>
+<li><a href="#23-gdpgaussian-differential-privacy">2.3 μ-GDP（Gaussian Differential Privacy）</a></li>
+</ul>
+</li>
+<li><a href="#3-t-g_-neyman-pearson">3. トレードオフ関数 T と G_μ、そして Neyman-Pearson</a><ul>
+<li><a href="#31-fpr-fnr">3.1 経験的 (FPR, FNR) から μ への点推定</a></li>
+</ul>
+</li>
+<li><a href="#4-2">4. (ε,δ) ↔ μ の変換（2 つの経路）</a></li>
+<li><a href="#5">5. まとめ（このページの主張）</a></li>
+<li><a href="#_1">出典対応表（本ページ）</a></li>
+</ul>
+</div>
+</nav>
+  <article><h1 id="gdp-f-dp-fprfnr">GDP / f-DP / FPR–FNR トレードオフ ——（ε,δ）から μ への橋渡し</h1>
+<blockquote>
+<p>技術解説ページ（モードA）。本ページは <a href="index.html">REPORT.md</a> §2.1・§2.5 から参照される補助資料である。図ラベルは英語、本文は日本語。数式は最小限に留め、直感を優先する。事実は出典タグ <code>[n]</code>（本ページ末尾の対応表参照）、筆者の補足解釈は 🔎 で示す。</p>
+</blockquote>
+<h2 id="1">1. なぜ単一の (ε,δ) でなく「曲線」で見るのか</h2>
+<p>差分プライバシー（DP）は本来、機構の出力が任意の 1 レコードの有無に対して区別しにくいことを保証する[G2]。この「区別しにくさ」は、本質的には<strong>仮説検定</strong>の難しさである——「対象レコードが入っていたか（in）／いなかったか（out）」を当てる検定をどれだけ失敗させられるか。</p>
+<p>検定の性能は 1 つの数では表せない。<strong>偽陽性率 FPR（α）</strong> と <strong>偽陰性率 FNR（β）</strong> の間にはトレードオフがあり、片方を下げれば他方が上がる。単一の (ε,δ) 値はこのトレードオフ曲線の「一点」あるいは粗い包絡しか与えず、不完全または誤解を招く結論につながりうる[G7]。そこで本手法は、プライバシーを <strong>FPR–FNR トレードオフ曲線全体</strong>として測る[G1]。</p>
+<blockquote class="badge-note">
+<p>🔎 <strong>直感</strong>: 監査とは「実装に対する最良の攻撃」を試み、その攻撃の (FPR, FNR) が理論上どこまで良くなりうるかの境界に届くかを見る作業である。境界に届くほど監査は tight（緩みがない）。</p>
+</blockquote>
+<h2 id="2-dp-3">2. DP の 3 つの見方と相互関係</h2>
+<p>本手法が同じ曲線上に並べる DP 概念は 3 つである[G1]:</p>
+<h3 id="21-dp-dp">2.1 (ε,δ)-DP（近似 DP）</h3>
+<p>任意の隣接データセット x, x' と任意の出力集合 S について、<code>Pr[M(x)∈S] ≤ e^ε · Pr[M(x')∈S] + δ</code> を満たす[G2]。失敗確率 δ を許して純粋 DP を緩めたもの。最も広く使われる「報告用」パラメータ。</p>
+<h3 id="22-zcdpzero-concentrated-dp">2.2 ρ-zCDP（zero-Concentrated DP）</h3>
+<p>Rényi ダイバージェンス D_α でプライバシーを特徴づけ、<strong>ガウス機構の合成を tight に解析</strong>できる[G3]。<code>ρ-zCDP ⇒ 任意の δ&gt;0 で (ρ + 2√(ρ log(1/δ)), δ)-DP</code> という変換を持つ[G3]。MST/AIM は内部で入力 (ε,δ) を Canonne ら [G20] の変換で ρ-zCDP に直し、その ρ を予算として消費する[G1]。</p>
+<h3 id="23-gdpgaussian-differential-privacy">2.3 μ-GDP（Gaussian Differential Privacy）</h3>
+<p>仮説検定（f-DP）の視点に立ち、機構のトレードオフ関数を<strong>ガウス曲線</strong>で下から押さえる[G19]。単一パラメータ μ が「平均が μ だけ離れた 2 つの標準正規分布をどれだけ見分けにくいか」を表す。μ が小さいほど強いプライバシー（見分けにくい）。</p>
+<p>これら 3 つの関係（本手法が依拠する定理）:
+- <strong>zCDP → DP</strong>: ρ-zCDP なら任意の δ で (ρ + 2√(ρ log(1/δ)), δ)-DP[G3]。
+- <strong>zCDP → GDP</strong>: ガウス機構（またはその合成）が ρ-zCDP なら、<code>μ = √(2ρ)</code> で μ-GDP[G19]。
+- <strong>GDP → DP</strong>: μ-GDP であることは、すべての ε≥0 について (ε, δ(ε))-DP であることと同値[G19]。</p>
+<blockquote class="badge-note">
+<p>🔎 <strong>要点</strong>: MST/AIM は「ガウス機構のみ」を使う制限構成では、内部の ρ から <strong>μ = √(2ρ)</strong> が直接定まる。これを本手法は理論目標 <strong>implied μ</strong> と呼ぶ[G1]。</p>
+</blockquote>
+<h2 id="3-t-g_-neyman-pearson">3. トレードオフ関数 T と G_μ、そして Neyman-Pearson</h2>
+<p>2 つの分布 P, Q（ここでは M(x) と M(x')）に対し、<strong>トレードオフ関数</strong> <code>T(P,Q)(α)</code> は「FPR を α 以下に抑えたときに達成可能な最小の FNR」を返す[G19]。Neyman–Pearson の補題により、この最小値は尤度比検定で達成される[G19]。</p>
+<p>μ-GDP の基準曲線は、標準正規 N(0,1) と平均ずれ N(μ,1) のトレードオフ関数</p>
+<div class="codehilite"><pre><span></span><code>G_μ = T( N(0,1), N(μ,1) )
+</code></pre></div>
+
+<p>であり[G19]、機構 M が μ-GDP とは「すべての隣接 x,x' で <code>T(M(x),M(x'))(α) ≥ G_μ(α)</code>（曲線が G_μ より上）」を意味する[G19]。</p>
+<p>任意の MIA は必ず <code>FPR + FNR ≥ 1 − （達成可能な最大 advantage）</code> の制約、より基本的には <code>α ≤ β</code> 型の関係に縛られる——重要なのは、<strong>どんな攻撃も理論トレードオフ境界を超えられない</strong>点である[G19]。監査はこの境界に経験的に「どこまで近づけるか」を測る。</p>
+<h3 id="31-fpr-fnr">3.1 経験的 (FPR, FNR) から μ への点推定</h3>
+<p>攻撃分類器の test 上の (FPR, FNR) から、GDP のトレードオフ曲線を逆に解いて点推定</p>
+<div class="codehilite"><pre><span></span><code>μ̂ = Φ⁻¹(1 − FPR) − Φ⁻¹(FNR)
+</code></pre></div>
+
+<p>を得る（Φ は標準正規 CDF）[G_code]。これは「観測された検定性能を G_μ に当てはめたときの μ」に相当する。</p>
+<h2 id="4-2">4. (ε,δ) ↔ μ の変換（2 つの経路）</h2>
+<p>本手法の図では、同じ (ε,δ)=(1,10⁻²) を μ に直す経路が 2 つ現れ、<strong>値が一致しない</strong>ことが重要なポイントである[G1]:</p>
+<ol>
+<li><strong>accounting path（内部経路, implied μ）</strong>: (ε,δ) → ρ-zCDP（Canonne 変換[G20]）→ μ=√(2ρ)。これが MST/AIM が実際に消費する予算に対応する。μ ≈ 0.45[G1]。</li>
+<li><strong>直接変換（direct）</strong>: (ε,δ) を GDP→DP の関係式</li>
+</ol>
+<div class="codehilite"><pre><span></span><code>δ(ε,μ) = Φ(−ε/μ + μ/2) − e^ε · Φ(−ε/μ − μ/2)
+</code></pre></div>
+
+<p>を μ について数値的に逆解き（例: brentq）して得る[G_code][G19]。こちらはより大きい μ（弱いプライバシー）を与える[G1]。</p>
+<p>両者の差は、中間の zCDP ステップで使う (ε,δ)→ρ 変換が<strong>数値安定だが保守的</strong>[G20]であることに由来する。結果として内部経路は同じ入力 (ε,δ) に対しわずかに強いプライバシー（小さい μ）を強制し、同じ予算での有用性をいくらか犠牲にしうる[G1]。</p>
+<blockquote class="badge-note">
+<p>🔎 <strong>監査上の含意</strong>: 経験的曲線が <strong>どちらの理論線に一致するか</strong>が診断になる。本手法では経験的曲線が accounting path（implied μ）の側に沿う——すなわち実装が自身のプライバシー解析と整合（tight）——ことが主結果である[G1]。</p>
+</blockquote>
+<h2 id="5">5. まとめ（このページの主張）</h2>
+<ul>
+<li>プライバシーは単一 (ε,δ) でなく <strong>FPR–FNR トレードオフ曲線</strong>で測るべき[G1][G7]。</li>
+<li>(ε,δ)-DP・ρ-zCDP・μ-GDP は相互変換でき、<strong>共通の μ-GDP 曲線上</strong>に並べて比較できる[G1][G19]。</li>
+<li>ガウス機構のみの MST/AIM では ρ から <code>μ=√(2ρ)</code> が直接定まり、これが監査の理論目標（implied μ）になる[G1][G19]。</li>
+<li>(ε,δ)→μ には保守的な内部経路と直接変換の 2 つがあり、両者の差が監査図の読み方の鍵になる[G1][G20]。</li>
+</ul>
+<hr />
+<h2 id="_1">出典対応表（本ページ）</h2>
+<blockquote>
+<p>採番は REPORT.md の References と共通（[1] は対象論文、[Rn] は参考文献）。本ページ固有の補助タグは [G_code]（上流監査コード由来）。</p>
+</blockquote>
+<ul>
+<li><strong>[1]</strong> = 本ページ表記 [G1]: Ganev, Annamalai, Kulynych. <em>Tight Auditing of Differential Privacy in MST and AIM</em>. TPDP 2026. arXiv:2604.18352.</li>
+<li><strong>[R19]</strong> = [G19]: Dong, Roth, Su. <em>Gaussian Differential Privacy</em>. JRSSB, 2022.（GDP / f-DP / トレードオフ関数・G_μ・Neyman-Pearson・GDP↔DP）</li>
+<li><strong>[R20]</strong> = [G20]: Canonne, Kamath, Steinke. <em>The Discrete Gaussian for Differential Privacy</em>. NeurIPS, 2020.（保守的な (ε,δ)→ρ-zCDP 変換）</li>
+<li><strong>[R7]</strong> = [G7]: Gomez et al. <em>Position: Gaussian DP for Reporting DP Guarantees in ML</em>. IEEE SaTML, 2026.（単一 (ε,δ) 報告の限界）</li>
+<li><strong>[G2]</strong>: Dwork, Roth. <em>The Algorithmic Foundations of Differential Privacy</em>. 2014.（(ε,δ)-DP の定義。原論文 [11]）</li>
+<li><strong>[G3]</strong>: Bun, Steinke. <em>Concentrated Differential Privacy</em>. TCC, 2016.（ρ-zCDP の定義・zCDP→DP。原論文 [4]）</li>
+<li><strong>[G_code]</strong>: 上流監査コード <code>sassoftware/dpmm</code> (<code>audit-dpmm</code>) の <code>adp2gdp.py</code> / <code>audit_utils.py</code>（μ̂ の式・(ε,δ)↔μ 数値逆解き）[survey]。</li>
+</ul></article>
+</div>
+<footer>Source: <a href="https://github.com/gghatano/tpdp2026-mst-aim-audit">https://github.com/gghatano/tpdp2026-mst-aim-audit</a> · Upstream: <a href="https://github.com/sassoftware/dpmm">https://github.com/sassoftware/dpmm</a></footer>
+
+</body>
+</html>

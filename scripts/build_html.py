@@ -19,6 +19,7 @@
 from __future__ import annotations
 
 import base64
+import html as _html
 import re
 import shutil
 from pathlib import Path
@@ -50,6 +51,39 @@ CONFIG = {
 # ===================================================================
 
 
+def first_h1(md_text: str) -> str | None:
+    """本文先頭の `# 見出し` を取り出す（ヒーロー見出しに使う）。見つからなければ None。"""
+    m = re.search(r"^#\s+(.+?)\s*$", md_text, flags=re.MULTILINE)
+    return m.group(1).strip() if m else None
+
+
+def discover_linked_pages(pages: list[dict]) -> list[dict]:
+    """CONFIG に無い .md がページ本文からリンクされていたら、html 生成＋タブ追加の対象に
+    自動登録する。out 名は basename（foo.md → foo.html）、ナビ名・副題は本文先頭の H1 から。
+    補助資料に新しい解説 md を足してリンクするだけで、タブが自動で増える。"""
+    existing = {p["md"] for p in pages} | {Path(p["md"]).name for p in pages}
+    found: dict[str, dict] = {}
+    for p in pages:
+        text = (ROOT / p["md"]).read_text(encoding="utf-8")
+        for m in re.finditer(r"\]\(([^)]+\.md)\)", text):
+            href = m.group(1)
+            if href.startswith(("http://", "https://")):
+                continue
+            cand = ROOT / href
+            if not cand.exists():
+                continue
+            rel = cand.relative_to(ROOT).as_posix()
+            if rel in existing or Path(rel).name in existing or rel in found:
+                continue
+            title = first_h1(cand.read_text(encoding="utf-8")) or cand.stem
+            found[rel] = {
+                "md": rel, "out": f"{cand.stem}.html", "key": cand.stem,
+                "nav": f"📄 {title[:18]}", "subtitle": title,
+            }
+            print(f"[discover] auto page: {rel} -> {cand.stem}.html  (tab: {title[:18]})")
+    return list(found.values())
+
+
 def embed_images(md_text: str) -> str:
     def repl(m: re.Match) -> str:
         alt, path = m.group(1), m.group(2)
@@ -78,16 +112,21 @@ def inject_mermaid(html: str, blocks: list[str]) -> str:
 
 
 def rewrite_links(html: str, pages: list[dict], repo_url: str) -> str:
-    # ページ間 .md リンク → 同一フォルダ .html
-    md_to_html = {p["md"]: p["out"] for p in pages}
-    for md, out in md_to_html.items():
-        html = html.replace(f'href="{md}"', f'href="{out}"')
+    # ページ間 .md リンク → 同一フォルダ .html。リンクはリポジトリ相対の .md パス
+    # （例 methods/foo.md・content/REPORT.md）でも、同名 basename（foo.md）でも解決する。
+    full_map = {p["md"]: p["out"] for p in pages}
+    base_map = {Path(p["md"]).name: p["out"] for p in pages}
     site_files = {p["out"] for p in pages}
 
     def repl(m: re.Match) -> str:
         href = m.group(1)
         if href.startswith(("http://", "https://", "#", "mailto:", "data:")) or href in site_files:
             return m.group(0)
+        if href.endswith(".md"):
+            out = full_map.get(href) or base_map.get(Path(href).name)
+            if out:
+                return f'href="{out}"'
+        # ページ化されていないリポジトリ相対リンクは GitHub blob にフォールバック
         return f'href="{repo_url}/blob/main/{href}"'
 
     return re.sub(r'href="([^"]+)"', repl, html)
@@ -173,7 +212,11 @@ def build_nav(active_key: str, pages: list[dict]) -> str:
 
 def render(page: dict, pages: list[dict]) -> str:
     cfg = CONFIG
-    md_text = embed_images((ROOT / page["md"]).read_text(encoding="utf-8"))
+    raw_text = (ROOT / page["md"]).read_text(encoding="utf-8")
+    # ヒーロー見出しは各ページ本文の最初の H1（具体タイトル）を使う。本文側の H1 は
+    # CSS で非表示にしているため、これをやらないとページ固有のタイトルがどこにも出ない。
+    page_title = first_h1(raw_text) or cfg["hero_title"]
+    md_text = embed_images(raw_text)
     md_text, mermaid_blocks = extract_mermaid(md_text)
     md = markdown.Markdown(
         extensions=["tables", "fenced_code", "toc", "codehilite", "sane_lists"],
@@ -193,12 +236,12 @@ def render(page: dict, pages: list[dict]) -> str:
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{cfg['hero_title']}</title>
+<title>{_html.escape(page_title)}</title>
 <style>{CSS}</style>
 </head>
 <body>
 <header class="hero"><div class="inner">
-  <h1>{cfg['hero_title']}</h1>
+  <h1>{_html.escape(page_title)}</h1>
   <p>{page['subtitle']}</p>
 </div>{nav}</header>
 <div class="layout">
@@ -213,6 +256,7 @@ def render(page: dict, pages: list[dict]) -> str:
 
 def main() -> None:
     pages = [p for p in CONFIG["pages"] if (ROOT / p["md"]).exists()]
+    pages = pages + discover_linked_pages(pages)  # リンクされた未登録 md を自動ページ化
     if OUTDIR.exists():
         shutil.rmtree(OUTDIR)
     OUTDIR.mkdir(parents=True)

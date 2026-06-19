@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>メンバーシップ推論による DP 監査 —— distinguishing game と経験的下界</title>
+<style>
+:root { --fg:#1a1a1a; --muted:#666; --accent:#c0392b; --line:#e3e3e3; --bg:#fff; --code:#f6f8fa; --sidebar:#fbfbfc; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { font-family: -apple-system,"Segoe UI","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;
+  color: var(--fg); background: #f3f4f6; line-height: 1.85; margin: 0; }
+.hero { background: linear-gradient(135deg,#2c3e50 0%,#c0392b 130%); color:#fff; padding: 36px 24px 0; }
+.hero .inner { max-width: 1180px; margin: 0 auto; }
+.hero h1 { margin: 0 0 .3em; font-size: 1.8rem; border: none; color:#fff; }
+.hero p { margin: .2em 0; opacity: .92; font-size: .94rem; }
+.hero a { color:#ffe; }
+.nav { max-width: 1180px; margin: 16px auto 0; display: flex; gap: 6px; }
+.nav a { padding: 9px 18px; border-radius: 8px 8px 0 0; background: rgba(255,255,255,.14); color:#fff;
+  text-decoration: none; font-size: .9rem; border: 1px solid rgba(255,255,255,.25); border-bottom: none; }
+.nav a.active { background: #f3f4f6; color: var(--accent); font-weight: 600; }
+.nav a:hover:not(.active) { background: rgba(255,255,255,.26); }
+.layout { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 250px 1fr; gap: 32px; padding: 24px 24px 96px; }
+nav.toc { position: sticky; top: 18px; align-self: start; max-height: calc(100vh - 36px); overflow-y: auto;
+  background: var(--sidebar); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; font-size: .86rem; }
+nav.toc strong { display: block; margin-bottom: 8px; color: var(--accent); }
+nav.toc ul { list-style: none; padding-left: 0; margin: 0; } nav.toc ul ul { padding-left: 12px; }
+nav.toc li { margin: 3px 0; } nav.toc a { color:#34495e; text-decoration: none; display: block; padding: 2px 0; }
+nav.toc a:hover { color: var(--accent); }
+article { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px 40px 56px;
+  box-shadow: 0 1px 10px rgba(0,0,0,.04); min-width: 0; }
+article > h1:first-of-type { display: none; }
+h2 { font-size: 1.45rem; margin-top: 2.2em; border-bottom: 1px solid var(--line); padding-bottom: .3em; scroll-margin-top: 16px; }
+h3 { font-size: 1.16rem; margin-top: 1.7em; color:#222; scroll-margin-top: 16px; }
+h4 { font-size: 1.0rem; margin-top: 1.3em; color: var(--accent); }
+a { color:#1565c0; text-decoration: none; } a:hover { text-decoration: underline; }
+a[href^="#ref"] { font-size:.72em; vertical-align:super; line-height:0; color:#1565c0; background:#eef4fb;
+  border:1px solid #cfe0f3; border-radius:4px; padding:0 4px; margin:0 1px; text-decoration:none; white-space:nowrap; }
+a[href^="#ref"]:hover { background:#d7e8fb; }
+:target { scroll-margin-top: 18px; }
+code { background: var(--code); padding: .15em .4em; border-radius: 4px; font-size: .88em;
+  font-family: "Cascadia Code",Consolas,"SF Mono",monospace; }
+pre { background: var(--code); padding: 15px 18px; border-radius: 8px; overflow-x: auto; border: 1px solid var(--line); }
+pre code { background: none; padding: 0; }
+table { border-collapse: collapse; width: 100%; margin: 1.2em 0; font-size: .9rem; display: block; overflow-x: auto; }
+th, td { border: 1px solid var(--line); padding: 8px 11px; text-align: left; white-space: nowrap; }
+th { background: #f2f4f7; font-weight: 600; } tr:nth-child(even) td { background: #fbfbfc; }
+img { max-width: 100%; height: auto; display: block; margin: 1.2em auto; border: 1px solid var(--line); border-radius: 8px; }
+.mermaid { background:#fff; border:1px solid var(--line); border-radius:8px; padding:14px; margin:1.4em 0; text-align:center; overflow-x:auto; }
+blockquote { border-left: 4px solid var(--accent); margin: 1.2em 0; padding: .4em 1.2em; background:#fdf3f2; color:#444; border-radius: 0 6px 6px 0; }
+blockquote.badge-doc { border-left-color:#1565c0; background:#eef4fb; color:#21303f; }
+blockquote.badge-note { border-left-color:#b9770e; background:#fdf6e9; color:#3a2e12; }
+blockquote.badge-legend { border-left-color:#607d8b; background:#eef1f3; color:#243; }
+hr { border: none; border-top: 1px solid var(--line); margin: 2.2em 0; }
+footer { max-width: 1180px; margin: 0 auto; padding: 24px; color: var(--muted); font-size: .85rem; text-align: center; }
+@media (max-width: 860px) { .layout { grid-template-columns: 1fr; } nav.toc { position: static; max-height: none; } article { padding: 12px 20px 40px; } }
+</style>
+</head>
+<body>
+<header class="hero"><div class="inner">
+  <h1>メンバーシップ推論による DP 監査 —— distinguishing game と経験的下界</h1>
+  <p>メンバーシップ推論による経験的 DP 監査</p>
+</div><nav class="nav"><a href="index.html">📄 論文レポート</a><a href="gdp.html">🔧 GDP/トレードオフ</a><a href="mia.html" class="active">🔧 監査の仕組み</a><a href="mstaim.html">🔧 MST/AIM</a><a href="setup.html">⚙️ 環境構築・再現</a></nav></header>
+<div class="layout">
+  <nav class="toc"><strong>目次</strong><div class="toc">
+<ul>
+<li><a href="#1-dp">1. DP 監査とは何か</a></li>
+<li><a href="#2-distinguishing-game">2. distinguishing game（区別ゲーム）</a></li>
+<li><a href="#3-strong-adversary">3. 強敵対者モデル（strong adversary）</a></li>
+<li><a href="#4-worst-case">4. worst-case カナリア（標的レコード）</a></li>
+<li><a href="#5-fprfnr">5. 攻撃 → FPR/FNR → 経験的下界</a></li>
+<li><a href="#6-tight-_emp0">6. なぜ tight が難しいか／従来研究が μ_emp=0 だった理由</a></li>
+<li><a href="#7">7. まとめ（このページの主張）</a></li>
+<li><a href="#_1">出典対応表（本ページ）</a></li>
+</ul>
+</div>
+</nav>
+  <article><h1 id="dp-distinguishing-game">メンバーシップ推論による DP 監査 —— distinguishing game と経験的下界</h1>
+<blockquote>
+<p>技術解説ページ（モードA）。<a href="index.html">REPORT.md</a> §2.1・§2.3・§2.4 から参照される補助資料。図ラベルは英語、本文は日本語。事実は出典タグ <code>[n]</code>（末尾の対応表）、筆者の補足は 🔎。</p>
+</blockquote>
+<h2 id="1-dp">1. DP 監査とは何か</h2>
+<p>DP 監査は、機構が<strong>主張通りのプライバシーを実際に満たすか</strong>を経験的に検証する営みである[A12]。形式的な証明（理論上界）が正しくても、実装にバグ（ドメイン漏洩・浮動小数点脆弱性など）があれば実際の漏洩はそれより大きくなりうる。監査は理論を信じる代わりに「攻撃を実際に走らせて漏洩の<strong>経験的下界</strong>を測り、主張された DP パラメータと比較する」[A1][A12]。</p>
+<ul>
+<li>理論上界（claimed）より経験的下界が<strong>大きければ</strong> → 主張違反の証拠[A1]。</li>
+<li>経験的下界が理論上界に<strong>ほぼ届けば</strong> → 監査が tight（実装と解析が整合）[1]。</li>
+<li>経験的下界が<strong>ゼロに潰れる</strong> → 監査が緩い／攻撃が弱い／設定が不適切（実装が安全とは言い切れない）[1]。</li>
+</ul>
+<h2 id="2-distinguishing-game">2. distinguishing game（区別ゲーム）</h2>
+<p>DP の定義そのものが区別ゲームである。監査はこれを次の手続きで具体化する[A1][1]:</p>
+<ol>
+<li><strong>チャレンジャ</strong>が 2 つの隣接データセット x（out）と x'（in。標的レコードを 1 件足したもの）を用意する。</li>
+<li>ランダム化機構 M を、各データセットで<strong>多数回 独立に学習</strong>する（本手法では計 10,000 モデル＝各 5,000）[1]。</li>
+<li>各学習の出力（合成データ・noisy marginals）を<strong>敵対者</strong>に渡す。</li>
+<li>敵対者は各出力について「in か out か」を当てる。</li>
+<li>当たり外れから <strong>FPR（out を in と誤判定）</strong> と <strong>FNR（in を out と見逃し）</strong> を測り、トレードオフ曲線上の点を得る[1]。</li>
+</ol>
+<p>この (FPR, FNR) を理論フロンティアと比較し、μ-GDP の経験的 μ に変換する[1]（→ <a href="gdp.html">methods/gdp-and-tradeoff.md</a>）。</p>
+<h2 id="3-strong-adversary">3. 強敵対者モデル（strong adversary）</h2>
+<p>DP の保証は<strong>強敵対者</strong>——機構 M と 2 つの隣接データセット x, x' を知り、ただ「どちらが使われたか」だけを知らない敵——に対して成り立つことを要求する[A19]。監査もこの強敵対者を模す。本手法の敵対者は hybrid black/white-box である[1]:</p>
+<ul>
+<li><strong>黒箱特徴</strong>: 合成データに対し離散ドメインの<strong>全クエリ</strong>を評価したカウント（Query-based MIA [A17] に従う）[1]。</li>
+<li><strong>白箱特徴</strong>: モデル内部の <strong>noisy one-way marginal counts</strong>[1]。</li>
+</ul>
+<p>両特徴を連結し、攻撃分類器（本手法では XGBoost[1]／移植コードでは GradientBoosting[survey]）に食わせて in/out を判別する。</p>
+<blockquote class="badge-note">
+<p>🔎 <strong>直感</strong>: 強敵対者を仮定するほど経験的下界は上がり（tight に近づき）、現実的な弱い敵を仮定するほど下界は緩む。監査は「保証が壊れていないか」を厳しく問うため、あえて強敵対者を使う。</p>
+</blockquote>
+<h2 id="4-worst-case">4. worst-case カナリア（標的レコード）</h2>
+<p>tight な監査には、標的レコードの影響を<strong>最大化する worst-case 構成</strong>がしばしば必要である[A1][A15][A16]。本手法では[1]:</p>
+<ul>
+<li><code>Dout</code> = 同一レコード <code>[0,0,0]</code> を 10 件。</li>
+<li><code>Din</code> = そこに標的（canary）<code>[1,1,1]</code> を 1 件追加。</li>
+</ul>
+<p>この canary は全ての one-way marginal に最大の影響を与えるため、検出可能性（=漏洩）が最大化され、攻撃が理論境界に届きやすくなる[1]。</p>
+<h2 id="5-fprfnr">5. 攻撃 → FPR/FNR → 経験的下界</h2>
+<p>test 上の予測から TPR・FPR を計算し、<strong>joint Bayesian アプローチ</strong>（Zanella-Béguelin ら [A18] に着想）で、対応する μ-GDP 領域が<strong>事後質量 90%</strong> を含むような下界 μ_emp を導出する[1]。</p>
+<p>重要な注意: これは<strong>ベイズ下界</strong>であり、Nasr ら [A16] が指摘するとおり<strong>頻度論的被覆を必ずしも持たない</strong>（経験的にはより tight なことが多い）[1]。「保証された下界」と混同してはならない。</p>
+<p>公平性・リーク防止の要として、<strong>閾値は validation のみで選び、test は 1 回だけ評価</strong>する[1]。これを崩すと test 性能が楽観的に膨らみ、μ_emp が過大になる。</p>
+<h2 id="6-tight-_emp0">6. なぜ tight が難しいか／従来研究が μ_emp=0 だった理由</h2>
+<p>強プライバシー領域（ε=1 など）では信号（漏洩）が小さく、攻撃の (FPR,FNR) が理論境界に届きにくい。従来研究は MST に対し、同領域で<strong>緩い、しばしばゼロの経験的推定</strong>しか得られなかった[1][A1]。</p>
+<p>本手法はその主因を<strong>閾値選択の不安定さ</strong>と特定する[1]: 推定 μ̂ を validation で最大化するような不安定な基準を使うと、<strong>過度に小さい閾値</strong>が選ばれて FPR が過大になり、経験的下界が<strong>ゼロに潰れる</strong>[1]。これが従来の μ_emp=0 の原因と説明される。これに対し、advantage（TPR−FPR）を最大化する基準は閾値に対して滑らかで安定に振る舞い、tight な下界を与える[1]。</p>
+<blockquote class="badge-note">
+<p>🔎 <strong>再現の焦点</strong>: 本追試（縮小版）は、(1) μ_emp が implied μ=0.45 の近傍に来ること、(2) 閾値選択基準を不安定なものに変えると μ_emp が 0 に潰れること——という 2 つの<strong>傾向</strong>の再現を目標にする[計画]。数値完全一致は狙わない。</p>
+</blockquote>
+<h2 id="7">7. まとめ（このページの主張）</h2>
+<ul>
+<li>DP 監査は理論を仮定せず、攻撃を走らせて<strong>経験的下界</strong>を測り主張と比較する[A1][A12]。</li>
+<li>区別ゲーム＋強敵対者＋worst-case カナリアが tight な監査の三要素[1][A15][A16]。</li>
+<li>経験的下界はベイズ下界であり頻度論的被覆を持つとは限らない[1][A16]。</li>
+<li>従来の μ_emp=0 は<strong>不安定な閾値選択</strong>が主因であり、安定な advantage 基準で tight 化できる[1]。</li>
+</ul>
+<hr />
+<h2 id="_1">出典対応表（本ページ）</h2>
+<blockquote>
+<p>採番は REPORT.md の References と共通。</p>
+</blockquote>
+<ul>
+<li><strong>[1]</strong> = [本文全般]: Ganev, Annamalai, Kulynych. <em>Tight Auditing of Differential Privacy in MST and AIM</em>. TPDP 2026. arXiv:2604.18352.</li>
+<li><strong>[R1]</strong> = [A1]: Annamalai, Ganev, De Cristofaro. <em>Experimenting with Tight Auditing of DP Synthetic Data Generation</em>. USENIX Security, 2024.（採用した監査枠組み・従来の μ_emp=0）</li>
+<li><strong>[R12]</strong> = [A12]: Annamalai et al. <em>SoK: The Hitchhiker Guide to Efficient, End-to-End, and Tight DP Auditing</em>. IEEE SaTML, 2026.（DP 監査総説）</li>
+<li><strong>[R15]</strong> = [A15]: Nasr et al. <em>Adversary Instantiation</em>. IEEE S&amp;P, 2021.（worst-case 構成）</li>
+<li><strong>[R16]</strong> = [A16]: Nasr et al. <em>Tight Auditing of DP Machine Learning</em>. USENIX Security, 2023.（ベイズ下界の被覆に関する注意）</li>
+<li><strong>[R17]</strong> = [A17]: Houssiau et al. <em>TAPAS</em>. NeurIPS Workshop, 2022.（Query-based MIA）</li>
+<li><strong>[R18]</strong> = [A18]: Zanella-Béguelin et al. <em>Bayesian Estimation of Differential Privacy</em>. ICML, 2023.（joint Bayesian 下界）</li>
+<li><strong>[R19]</strong> = [A19]: Dong, Roth, Su. <em>Gaussian Differential Privacy</em>. JRSSB, 2022.（強敵対者・仮説検定の視点）</li>
+</ul></article>
+</div>
+<footer>Source: <a href="https://github.com/gghatano/tpdp2026-mst-aim-audit">https://github.com/gghatano/tpdp2026-mst-aim-audit</a> · Upstream: <a href="https://github.com/sassoftware/dpmm">https://github.com/sassoftware/dpmm</a></footer>
+
+</body>
+</html>

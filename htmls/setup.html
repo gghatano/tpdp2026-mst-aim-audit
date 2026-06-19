@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>環境構築・再現手順</title>
+<style>
+:root { --fg:#1a1a1a; --muted:#666; --accent:#c0392b; --line:#e3e3e3; --bg:#fff; --code:#f6f8fa; --sidebar:#fbfbfc; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { font-family: -apple-system,"Segoe UI","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;
+  color: var(--fg); background: #f3f4f6; line-height: 1.85; margin: 0; }
+.hero { background: linear-gradient(135deg,#2c3e50 0%,#c0392b 130%); color:#fff; padding: 36px 24px 0; }
+.hero .inner { max-width: 1180px; margin: 0 auto; }
+.hero h1 { margin: 0 0 .3em; font-size: 1.8rem; border: none; color:#fff; }
+.hero p { margin: .2em 0; opacity: .92; font-size: .94rem; }
+.hero a { color:#ffe; }
+.nav { max-width: 1180px; margin: 16px auto 0; display: flex; gap: 6px; }
+.nav a { padding: 9px 18px; border-radius: 8px 8px 0 0; background: rgba(255,255,255,.14); color:#fff;
+  text-decoration: none; font-size: .9rem; border: 1px solid rgba(255,255,255,.25); border-bottom: none; }
+.nav a.active { background: #f3f4f6; color: var(--accent); font-weight: 600; }
+.nav a:hover:not(.active) { background: rgba(255,255,255,.26); }
+.layout { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 250px 1fr; gap: 32px; padding: 24px 24px 96px; }
+nav.toc { position: sticky; top: 18px; align-self: start; max-height: calc(100vh - 36px); overflow-y: auto;
+  background: var(--sidebar); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; font-size: .86rem; }
+nav.toc strong { display: block; margin-bottom: 8px; color: var(--accent); }
+nav.toc ul { list-style: none; padding-left: 0; margin: 0; } nav.toc ul ul { padding-left: 12px; }
+nav.toc li { margin: 3px 0; } nav.toc a { color:#34495e; text-decoration: none; display: block; padding: 2px 0; }
+nav.toc a:hover { color: var(--accent); }
+article { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px 40px 56px;
+  box-shadow: 0 1px 10px rgba(0,0,0,.04); min-width: 0; }
+article > h1:first-of-type { display: none; }
+h2 { font-size: 1.45rem; margin-top: 2.2em; border-bottom: 1px solid var(--line); padding-bottom: .3em; scroll-margin-top: 16px; }
+h3 { font-size: 1.16rem; margin-top: 1.7em; color:#222; scroll-margin-top: 16px; }
+h4 { font-size: 1.0rem; margin-top: 1.3em; color: var(--accent); }
+a { color:#1565c0; text-decoration: none; } a:hover { text-decoration: underline; }
+a[href^="#ref"] { font-size:.72em; vertical-align:super; line-height:0; color:#1565c0; background:#eef4fb;
+  border:1px solid #cfe0f3; border-radius:4px; padding:0 4px; margin:0 1px; text-decoration:none; white-space:nowrap; }
+a[href^="#ref"]:hover { background:#d7e8fb; }
+:target { scroll-margin-top: 18px; }
+code { background: var(--code); padding: .15em .4em; border-radius: 4px; font-size: .88em;
+  font-family: "Cascadia Code",Consolas,"SF Mono",monospace; }
+pre { background: var(--code); padding: 15px 18px; border-radius: 8px; overflow-x: auto; border: 1px solid var(--line); }
+pre code { background: none; padding: 0; }
+table { border-collapse: collapse; width: 100%; margin: 1.2em 0; font-size: .9rem; display: block; overflow-x: auto; }
+th, td { border: 1px solid var(--line); padding: 8px 11px; text-align: left; white-space: nowrap; }
+th { background: #f2f4f7; font-weight: 600; } tr:nth-child(even) td { background: #fbfbfc; }
+img { max-width: 100%; height: auto; display: block; margin: 1.2em auto; border: 1px solid var(--line); border-radius: 8px; }
+.mermaid { background:#fff; border:1px solid var(--line); border-radius:8px; padding:14px; margin:1.4em 0; text-align:center; overflow-x:auto; }
+blockquote { border-left: 4px solid var(--accent); margin: 1.2em 0; padding: .4em 1.2em; background:#fdf3f2; color:#444; border-radius: 0 6px 6px 0; }
+blockquote.badge-doc { border-left-color:#1565c0; background:#eef4fb; color:#21303f; }
+blockquote.badge-note { border-left-color:#b9770e; background:#fdf6e9; color:#3a2e12; }
+blockquote.badge-legend { border-left-color:#607d8b; background:#eef1f3; color:#243; }
+hr { border: none; border-top: 1px solid var(--line); margin: 2.2em 0; }
+footer { max-width: 1180px; margin: 0 auto; padding: 24px; color: var(--muted); font-size: .85rem; text-align: center; }
+@media (max-width: 860px) { .layout { grid-template-columns: 1fr; } nav.toc { position: static; max-height: none; } article { padding: 12px 20px 40px; } }
+</style>
+</head>
+<body>
+<header class="hero"><div class="inner">
+  <h1>環境構築・再現手順</h1>
+  <p>clone → setup → run の全手順と動作環境・落とし穴</p>
+</div><nav class="nav"><a href="index.html">📄 論文レポート</a><a href="gdp.html">🔧 GDP/トレードオフ</a><a href="mia.html">🔧 監査の仕組み</a><a href="mstaim.html">🔧 MST/AIM</a><a href="setup.html" class="active">⚙️ 環境構築・再現</a></nav></header>
+<div class="layout">
+  <nav class="toc"><strong>目次</strong><div class="toc">
+<ul>
+<li><a href="#_2">動作環境（確認済み）</a></li>
+<li><a href="#_3">クイックスタート</a></li>
+<li><a href="#_4">個別実行</a></li>
+<li><a href="#_5">計算コストの目安</a></li>
+<li><a href="#windows-uv">Windows + uv の落とし穴（実際に踏んだもの）</a></li>
+<li><a href="#dp">再現性に関する重要な注意（DP ノイズの非決定性）</a></li>
+<li><a href="#github-pages">GitHub Pages 公開</a></li>
+</ul>
+</div>
+</nav>
+  <article><h1 id="_1">環境構築・再現手順</h1>
+<p>本ページは、本リポジトリの実験を<strong>まっさらな環境から再現する</strong>ための手順・動作環境・落とし穴をまとめる。
+レポート本体は <a href="index.html">content/REPORT.md</a>、技術解説は <code>methods/</code> を参照。</p>
+<h2 id="_2">動作環境（確認済み）</h2>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>値</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OS</td>
+<td>Windows 11 Pro (10.0.26200)</td>
+</tr>
+<tr>
+<td>Python</td>
+<td>3.11.15（uv が自動取得）</td>
+</tr>
+<tr>
+<td>パッケージ管理</td>
+<td><a href="https://docs.astral.sh/uv/">uv</a></td>
+</tr>
+<tr>
+<td>主要依存</td>
+<td>dpmm 0.1.9 / riskcal 1.5.1 / scikit-learn 1.5.0 / scipy 1.17.1 / numpy 1.26.4</td>
+</tr>
+<tr>
+<td>CPU</td>
+<td>20 コア（並列 18 workers で実行）</td>
+</tr>
+</tbody>
+</table>
+<p>依存は全て <code>requirements.txt</code> にバージョン固定済み。</p>
+<h2 id="_3">クイックスタート</h2>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 1. 環境構築（uv で .venv を作成し、固定依存をインストール、import スモーク）</span>
+bash<span class="w"> </span>scripts/setup_env.sh
+
+<span class="c1"># 2. 一括実行（デモ → 攻撃特徴生成 → 監査 → 図表）</span>
+bash<span class="w"> </span>scripts/run_all.sh<span class="w">           </span><span class="c1"># 主結果（N_ALL=2500、約40-50分）</span>
+bash<span class="w"> </span>scripts/run_all.sh<span class="w"> </span><span class="m">200</span><span class="w">       </span><span class="c1"># 縮小スモーク（数分）</span>
+
+<span class="c1"># 3. HTML レポートをビルド（htmls/ に出力）</span>
+<span class="nv">PYTHONPATH</span><span class="o">=</span>scripts<span class="w"> </span>.venv/Scripts/python<span class="w"> </span>scripts/build_html.py
+</code></pre></div>
+
+<h2 id="_4">個別実行</h2>
+<div class="codehilite"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span>scripts<span class="w"> </span><span class="nv">PYTHONUTF8</span><span class="o">=</span><span class="m">1</span>
+<span class="nv">PY</span><span class="o">=</span>.venv/Scripts/python<span class="w">   </span><span class="c1"># Linux/Mac は .venv/bin/python</span>
+
+<span class="c1"># (A) dpmm の MST/AIM 合成デモ（監査とは独立。1-way/2-way TVD）</span>
+<span class="nv">$PY</span><span class="w"> </span>scripts/00_demo_dpmm.py
+
+<span class="c1"># (B) 攻撃特徴生成（worst-case 隣接データで MST を多数学習）</span>
+<span class="nv">$PY</span><span class="w"> </span>scripts/01_run_attack.py<span class="w"> </span>--n-all<span class="w"> </span><span class="m">2500</span><span class="w"> </span>--workers<span class="w"> </span><span class="m">18</span>
+
+<span class="c1"># 監査（FPR-FNR トレードオフ・μ_emp/μ_lower・収束・アブレーション）</span>
+<span class="nv">$PY</span><span class="w"> </span>scripts/02_audit_eval.py<span class="w"> </span>--n-all<span class="w"> </span><span class="m">2500</span>
+
+<span class="c1"># 図の生成</span>
+<span class="nv">$PY</span><span class="w"> </span>scripts/03_plot.py
+</code></pre></div>
+
+<h2 id="_5">計算コストの目安</h2>
+<ul>
+<li>MST 1 回の学習+生成 ≈ <strong>9.2 秒</strong>（n=10 行・3 列・ε=1）。<code>01_run_attack</code> は out/in 各 N_ALL 回 = 2×N_ALL 回。</li>
+<li>18 workers 並列で <strong>N_ALL=2500 → 約 40-50 分</strong>、N_ALL=5000（論文の完全規模）→ 約 80-90 分。</li>
+<li>監査（<code>02</code>）・図（<code>03</code>）は数十秒〜数分（特徴 pkl さえあれば軽量）。</li>
+</ul>
+<p>事前に小さい <code>--n-all</code>（例 50-200）でスモークし、所要時間を外挿してから本実行することを推奨。</p>
+<h2 id="windows-uv">Windows + uv の落とし穴（実際に踏んだもの）</h2>
+<ol>
+<li><strong><code>multiprocessing</code> は spawn</strong>: Windows は fork でなく spawn のため、各 worker が全モジュールを再 import する。
+   <code>01_run_attack.py</code> は <code>if __name__ == "__main__"</code> ガード必須（実装済み）。<code>maxtasksperchild</code> を 1 にすると
+   タスク毎に dpmm を再 import（約 10 秒）してしまうため、<strong>25 に設定</strong>して償却している。</li>
+<li><strong>cp932 文字化け</strong>: 日本語 Windows の既定エンコーディング対策として <code>PYTHONUTF8=1</code> を設定し、
+   ファイル書き出しは全て <code>encoding="utf-8"</code> を明示。</li>
+<li><strong>相対パスの罠</strong>: 上流 <code>run_attack.py</code> は <code>../data/</code> に書く前提だったが、本移植では
+   <code>config.py</code> で<strong>絶対パス化</strong>し cwd 非依存にした。</li>
+<li><strong>理論フロンティアのオーバーフロー</strong>: <code>riskcal.get_beta_from_zcdp</code> は α≈0 で <code>OverflowError</code>。
+   <code>03_plot.py</code> はポイント毎評価で NaN マスクし、context 曲線は α∈[1e-3, 1-1e-3] に制限。</li>
+</ol>
+<h2 id="dp">再現性に関する重要な注意（DP ノイズの非決定性）</h2>
+<p>MST の DP ガウスノイズは <strong>secure RNG（seed 不能）</strong> で生成される（実装を確認）。これは DP として
+正しい挙動だが、その帰結として:</p>
+<ul>
+<li><strong>特徴量生成（<code>01</code>）は run 間でビット一致しない</strong>。<code>numpy.random.seed</code> や <code>prng</code> 引数を渡しても
+  個々の試行の数値は固定できない（検証済み）。</li>
+<li>ただし<strong>多数試行にわたる集約 μ_emp は安定</strong>する。本追試は「単一値の完全一致」ではなく
+  <strong>傾向の再現</strong>（μ_emp が implied μ≈0.45 近傍に来る／不安定な閾値選択基準で μ_emp が 0 に潰れる）を目標とする。</li>
+<li>一方、<strong>監査ステップ（<code>02</code>）は features.pkl を固定すれば再現可能</strong>（分類器・分割の乱数は <code>AUDIT_SEED=13</code> で固定）。</li>
+</ul>
+<h2 id="github-pages">GitHub Pages 公開</h2>
+<ol>
+<li><code>.github/workflows/deploy-pages.yml</code> が <code>htmls/</code> を配信する。</li>
+<li>GitHub の <strong>Settings → Pages → Build and deployment → Source</strong> を <strong>「GitHub Actions」</strong> に設定（初回のみ手動）。
+   - CLI でも可: <code>gh api --method POST repos/gghatano/tpdp2026-mst-aim-audit/pages -f build_type=workflow</code>
+   - ⚠️ この設定を忘れると <strong>Actions は緑（success）のままなのにサイトは 404</strong> になる。ワークフローの <code>Check Pages is enabled</code> step が未設定を検知して fail させるので、その場合はこの手順を実施すること。判定: <code>gh api repos/gghatano/tpdp2026-mst-aim-audit/pages</code> が 404 なら未有効。</li>
+<li><code>main</code> へ push すると Actions が走り、<code>https://gghatano.github.io/tpdp2026-mst-aim-audit/</code> で公開される。</li>
+</ol>
+<p>ローカル確認: <code>python -m http.server 8099 --directory htmls</code>。</p></article>
+</div>
+<footer>Source: <a href="https://github.com/gghatano/tpdp2026-mst-aim-audit">https://github.com/gghatano/tpdp2026-mst-aim-audit</a> · Upstream: <a href="https://github.com/sassoftware/dpmm">https://github.com/sassoftware/dpmm</a></footer>
+
+</body>
+</html>

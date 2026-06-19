@@ -83,6 +83,8 @@ MST の DP ガウスノイズは **secure RNG（seed 不能）** で生成され
 
 1. `.github/workflows/deploy-pages.yml` が `htmls/` を配信する。
 2. GitHub の **Settings → Pages → Build and deployment → Source** を **「GitHub Actions」** に設定（初回のみ手動）。
+   - CLI でも可: `gh api --method POST repos/gghatano/tpdp2026-mst-aim-audit/pages -f build_type=workflow`
+   - ⚠️ この設定を忘れると **Actions は緑（success）のままなのにサイトは 404** になる。ワークフローの `Check Pages is enabled` step が未設定を検知して fail させるので、その場合はこの手順を実施すること。判定: `gh api repos/gghatano/tpdp2026-mst-aim-audit/pages` が 404 なら未有効。
 3. `main` へ push すると Actions が走り、`https://gghatano.github.io/tpdp2026-mst-aim-audit/` で公開される。
 
 ローカル確認: `python -m http.server 8099 --directory htmls`。

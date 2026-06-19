@@ -48,6 +48,14 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Check Pages is enabled
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh api "repos/${{ github.repository }}/pages" >/dev/null 2>&1; then
+            echo "::error::GitHub Pages が未有効です。初回のみ手動設定が必要: Settings → Pages → Source を 'GitHub Actions' にしてください（または gh api --method POST repos/${{ github.repository }}/pages -f build_type=workflow）。"
+            exit 1
+          fi
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
