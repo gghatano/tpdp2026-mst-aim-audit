@@ -15,6 +15,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from auditlib import run_audit, mu_from_eps_delta
 from dpmm.models.base.mechanisms import cdp_rho
 import config as C
+import functools
+print = functools.partial(print, flush=True)  # バックグラウンド実行でも進捗が見えるように
 
 N_QUERIES = 2 ** C.N_COLS  # 黒箱特徴の数（先頭 N_QUERIES 列）
 
