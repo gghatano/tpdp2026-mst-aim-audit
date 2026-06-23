@@ -5,6 +5,7 @@
 
 > ⚠️ **ステータス: 進行中（自律実験セッション）**。測定済みの数値のみ記載し、未実施は「未測定」と明記する。
 > 本リポジトリは上流監査コード [`sassoftware/dpmm` (`audit-dpmm` ブランチ)](https://github.com/sassoftware/dpmm/tree/audit-dpmm) を移植・縮小再現したもの。数値完全一致でなく**傾向の再現**を目標とする（実装差・縮小試行のため）。
+> 📊 **暫定結果（N_ALL=500/side, 単一シード）**: μ_emp=0.275 vs 理論 implied μ=0.455（縮小規模では gap が残る）。不安定な閾値選択で μ_emp が 0 に潰れる現象は再現（RQ3）。詳細は [content/REPORT.md](content/REPORT.md) §3。
 
 ## 何をするか
 

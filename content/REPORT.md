@@ -1,6 +1,6 @@
 # MST / AIM の差分プライバシーを GDP で tight に監査する：論文 arXiv:2604.18352 の縮小追試
 
-> 対象 = MST / AIM（DP 合成データ生成器） ／ 対象論文 = *Tight Auditing of Differential Privacy in MST and AIM*（[arXiv:2604.18352](https://arxiv.org/abs/2604.18352), TPDP 2026）[1] ／ リポジトリ = <https://github.com/gghatano/tpdp2026-mst-aim-audit> ／ 最終更新 = 2026-06-19
+> 対象 = MST / AIM（DP 合成データ生成器） ／ 対象論文 = *Tight Auditing of Differential Privacy in MST and AIM*（[arXiv:2604.18352](https://arxiv.org/abs/2604.18352), TPDP 2026）[1] ／ リポジトリ = <https://github.com/gghatano/tpdp2026-mst-aim-audit> ／ 最終更新 = 2026-06-20
 
 > ⚠️ **ステータス注記**: 本レポートは**中間報告**である。実験スコープは A（dpmm 単体での MST/AIM 合成デモ）＋ B（監査の縮小再現、out/in 各 1,125 試行）に限定し、数値完全一致でなく**傾向の再現**を目標とする。記載数値は測定済みのもの（[outputs/metrics.json](outputs/metrics.json)）。完全再現 C（10,000 fit）・AIM/高次 marginal（付録 A 相当）は当面スコープ外である。**DP ノイズは secure RNG のため特徴生成は run 間でビット非再現**だが、集約 μ_emp は安定する（[SETUP.md](SETUP.md) 再現性節）。
 

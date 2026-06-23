@@ -1,0 +1,17 @@
+{
+  "n_all": 50,
+  "n_done": 50,
+  "added_this_run": 50,
+  "workers": 2,
+  "epsilon": 1.0,
+  "delta": 0.01,
+  "len_synth": 25,
+  "n_rows": 10,
+  "n_cols": 3,
+  "n_features": 14,
+  "elapsed_sec": 737.4,
+  "per_fit_sec": 7.374,
+  "total_retries": 1,
+  "n_nan_rows": 0,
+  "python": "3.11.15"
+}
