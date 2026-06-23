@@ -66,7 +66,7 @@ footer { max-width: 1180px; margin: 0 auto; padding: 24px; color: var(--muted); 
 <ul>
 <li><a href="#1-dp">1. DP 監査とは何か</a></li>
 <li><a href="#2-distinguishing-game">2. distinguishing game（区別ゲーム）</a></li>
-<li><a href="#3-strong-adversary">3. 強敵対者モデル（strong adversary）</a></li>
+<li><a href="#3-strong-adversary">3. 強い敵対者モデル（strong adversary）</a></li>
 <li><a href="#4-worst-case">4. worst-case カナリア（標的レコード）</a></li>
 <li><a href="#5-fprfnr">5. 攻撃 → FPR/FNR → 経験的下界</a></li>
 <li><a href="#6-tight-_emp0">6. なぜ tight が難しいか／従来研究が μ_emp=0 だった理由</a></li>
@@ -96,18 +96,18 @@ footer { max-width: 1180px; margin: 0 auto; padding: 24px; color: var(--muted); 
 <li>当たり外れから <strong>FPR（out を in と誤判定）</strong> と <strong>FNR（in を out と見逃し）</strong> を測り、トレードオフ曲線上の点を得る[1]。</li>
 </ol>
 <p>この (FPR, FNR) を理論フロンティアと比較し、μ-GDP の経験的 μ に変換する[1]（→ <a href="gdp.html">methods/gdp-and-tradeoff.md</a>）。</p>
-<h2 id="3-strong-adversary">3. 強敵対者モデル（strong adversary）</h2>
-<p>DP の保証は<strong>強敵対者</strong>（機構 M と 2 つの隣接データセット x, x' を知り、ただ「どちらが使われたか」だけを知らない敵）に対して成り立つことを要求する[A19]。監査もこの強敵対者を模す。本手法の敵対者は hybrid black/white-box である[1]:</p>
+<h2 id="3-strong-adversary">3. 強い敵対者モデル（strong adversary）</h2>
+<p>DP の保証は<strong>強い敵対者</strong>（機構 M と 2 つの隣接データセット x, x' を知り、ただ「どちらが使われたか」だけを知らない敵）に対して成り立つことを要求する[A19]。監査もこの強い敵対者を模す。本手法の敵対者は hybrid black/white-box である[1]:</p>
 <ul>
-<li><strong>黒箱特徴</strong>: 合成データに対し離散ドメインの<strong>全クエリ</strong>を評価したカウント（Query-based MIA <a href="#ref-A17">[A17]</a> に従う）<a href="#ref-1">[1]</a>。</li>
-<li><strong>白箱特徴</strong>: モデル内部の <strong>noisy one-way marginal counts</strong>[1]。</li>
+<li><strong>ブラックボックス特徴</strong>: 合成データに対し離散ドメインの<strong>全クエリ</strong>を評価したカウント（Query-based MIA <a href="#ref-A17">[A17]</a> に従う）<a href="#ref-1">[1]</a>。</li>
+<li><strong>ホワイトボックス特徴</strong>: モデル内部の <strong>noisy one-way marginal counts</strong>[1]。</li>
 </ul>
 <p>両特徴を連結し、攻撃分類器（本手法では XGBoost[1]／移植コードでは GradientBoosting[survey]）に食わせて in/out を判別する。</p>
 <blockquote class="badge-note">
-<p>🔎 <strong>直感</strong>: 強敵対者を仮定するほど経験的下界は上がり（tight に近づき）、現実的な弱い敵を仮定するほど下界は緩む。監査は「保証が壊れていないか」を厳しく問うため、あえて強敵対者を使う。</p>
+<p>🔎 <strong>直感</strong>: 強い敵対者を仮定するほど経験的下界は上がり（tight に近づき）、現実的な弱い敵を仮定するほど下界は緩む。監査は「保証が壊れていないか」を厳しく問うため、あえて強い敵対者を使う。</p>
 </blockquote>
 <h2 id="4-worst-case">4. worst-case カナリア（標的レコード）</h2>
-<p>tight な監査には、標的レコードの影響を<strong>最大化する worst-case 構成</strong>がしばしば必要である[A1]<a href="#ref-A15">[A15]</a>[A16]。本手法では[1]:</p>
+<p>tight な監査には、標的レコードの影響を<strong>最大化する worst-case 構成</strong>がしばしば必要である[A1][A15]<a href="#ref-A16">[A16]</a>。本手法では[1]:</p>
 <ul>
 <li><code>Dout</code> = 同一レコード <code>[0,0,0]</code> を 10 件。</li>
 <li><code>Din</code> = そこに標的（canary）<code>[1,1,1]</code> を 1 件追加。</li>
@@ -126,7 +126,7 @@ footer { max-width: 1180px; margin: 0 auto; padding: 24px; color: var(--muted); 
 <h2 id="7">7. まとめ（このページの主張）</h2>
 <ul>
 <li>DP 監査は理論を仮定せず、攻撃を走らせて<strong>経験的下界</strong>を測り主張と比較する[A1]<a href="#ref-A12">[A12]</a>。</li>
-<li>区別ゲーム＋強敵対者＋worst-case カナリアが tight な監査の三要素[1]<a href="#ref-A15">[A15]</a>[A16]。</li>
+<li>区別ゲーム＋強い敵対者＋worst-case カナリアが tight な監査の三要素[1][A15]<a href="#ref-A16">[A16]</a>。</li>
 <li>経験的下界はベイズ下界であり頻度論的被覆を持つとは限らない[1]<a href="#ref-A16">[A16]</a>。</li>
 <li>従来の μ_emp=0 は<strong>不安定な閾値選択</strong>が主因であり、安定な advantage 基準で tight 化できる[1]。</li>
 </ul>
@@ -143,7 +143,7 @@ footer { max-width: 1180px; margin: 0 auto; padding: 24px; color: var(--muted); 
 <li><strong id="ref-A16">[A16]</strong> Nasr et al. <em>Tight Auditing of DP Machine Learning</em>. USENIX Security, 2023.（ベイズ下界の被覆に関する注意。REPORT の [R16]）</li>
 <li><strong id="ref-A17">[A17]</strong> Houssiau et al. <em>TAPAS</em>. NeurIPS Workshop, 2022.（Query-based MIA。REPORT の [R17]）</li>
 <li><strong id="ref-A18">[A18]</strong> Zanella-Béguelin et al. <em>Bayesian Estimation of Differential Privacy</em>. ICML, 2023.（joint Bayesian 下界。REPORT の [R18]）</li>
-<li><strong id="ref-A19">[A19]</strong> Dong, Roth, Su. <em>Gaussian Differential Privacy</em>. JRSSB, 2022.（強敵対者・仮説検定の視点。REPORT の [R19]）</li>
+<li><strong id="ref-A19">[A19]</strong> Dong, Roth, Su. <em>Gaussian Differential Privacy</em>. JRSSB, 2022.（強い敵対者・仮説検定の視点。REPORT の [R19]）</li>
 </ul></article>
 </div>
 <footer>Source: <a href="https://github.com/gghatano/tpdp2026-mst-aim-audit">https://github.com/gghatano/tpdp2026-mst-aim-audit</a> · Upstream: <a href="https://github.com/sassoftware/dpmm">https://github.com/sassoftware/dpmm</a></footer>

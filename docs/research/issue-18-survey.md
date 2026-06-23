@@ -56,12 +56,12 @@
 - この制限下では依存グラフが固定され高次 marginal を選ばないため、**MST と AIM は同一の independent-marginal モデルに帰着する**（"reduce to the same independent-marginal model"）。
 - 全予算を one-way 測定に割り当て、用いる機構が Gaussian 機構のみになるため μ-GDP 枠で解析可能になる。
 - → ゆえに公開コードに `aim/` ディレクトリが無く `mst/` のみでも、主実験としては整合する（MST=AIM）。**AIM 専用の追加実装は主構成では不要**。
-- 付録 A では制限を緩め、**2-way・3-way marginal** で学習した MST/AIM も監査。高次 marginal でも監査は弱まらず、むしろわずかに tight（3-way で μ_emp≈0.44, 2-way 黒箱で μ_emp≈0.43, vs 理論 μ=0.45）`[7]`。
+- 付録 A では制限を緩め、**2-way・3-way marginal** で学習した MST/AIM も監査。高次 marginal でも監査は弱まらず、むしろわずかに tight（3-way で μ_emp≈0.44, 2-way ブラックボックスで μ_emp≈0.43, vs 理論 μ=0.45）`[7]`。
 
 **(b) worst-case 構成・攻撃・統計（コードからの理解を本文で確認）`[7]`**
 - 隣接データ: `Dout` = 同一レコード `[0,0,0]` を 10 個、`Din` = それに標的レコード `[1,1,1]` を 1 つ追加（§3「Neighboring Datasets and Target Record」）。標的の全 marginal への影響を最大化する worst-case。
   - ※ 本文の記述（Dout=10 行・合成サイズ 50）と、エージェントが読んだ公開コードの既定値（`LEN_SYNTH=25` 等）には差がある可能性。**再現時の注意点**として §3.x に後述。
-- 脅威モデル: **hybrid black/white-box**。黒箱特徴 = 合成データ上の全クエリ評価（Query-based MIA [21]）、白箱特徴 = モデル内部の noisy one-way marginal counts。
+- 脅威モデル: **hybrid black/white-box**。ブラックボックス特徴 = 合成データ上の全クエリ評価（Query-based MIA [21]）、ホワイトボックス特徴 = モデル内部の noisy one-way marginal counts。
 - distinguishing game: `(ε,δ)=(1,10⁻²)` で **独立に 10,000 モデル学習（Dout/Din 各 5,000）**、各モデルは size 50 の合成データと noisy marginals を出す。出力を **train 4,000 / validation 2,000 / test 4,000** に分割。
 - 分類器: 本文は **XGBoost** と明記（§3 DP Distinguishing Game）。アブレーションで Random Forest も比較（Fig.3）。
   - ※ エージェントが読んだ公開コードは `GradientBoostingClassifier`/`RandomForest`。本文 XGBoost との差は **実装差/版差**として再現注意点に記録。
@@ -71,7 +71,7 @@
 **(c) 主要結果（本文の数値、事実 `[7]`）**
 - 主張: `(ε,δ)=(1,10⁻²)` → 理論 μ=0.45 に対し経験的 **μ_emp≈0.43**。strong-privacy regime（ε=1）で**初の tight audit**。従来研究 [1,24] は同領域で μ_emp=0（null）だった。
 - Fig.1: 経験的 FPR–FNR 曲線が、機構内部の **ρ-zCDP 経由で含意される μ**（実線・赤）にほぼ一致。一方、**(ε,δ)→μ の直接変換**（破線）はより大きい μ（弱いプライバシー）を出す。この差は中間の zCDP 変換 [5]（数値安定だが保守的）に由来。
-- Fig.3 アブレーション: 「Default」（joint_beta + Dout サイズ既定 + 黒箱+白箱 + 閾値=max advantage）が最も tight。**不安定な閾値選択基準（推定 μ̂ を validation で最大化）は過小な閾値を選び FPR を過大にして下界を 0 に潰す** → これが従来研究の μ_emp=0 の原因と説明。
+- Fig.3 アブレーション: 「Default」（joint_beta + Dout サイズ既定 + ブラックボックス+ホワイトボックス + 閾値=max advantage）が最も tight。**不安定な閾値選択基準（推定 μ̂ を validation で最大化）は過小な閾値を選び FPR を過大にして下界を 0 に潰す** → これが従来研究の μ_emp=0 の原因と説明。
 - 拡張性: 枠組みは Gaussian 機構ベースの他の DP 生成手法にも適用可能（結論）。
 
 > 🔎 **推定（再現上の含意）**: 公開コードの既定値（`N_ALL=5000`/side、`LEN_SYNTH=25`）と本文記述（5,000/side、合成サイズ 50）は概ね一致するが細部に差があり、分類器も GradientBoosting（コード）vs XGBoost（本文）と異なる。**完全一致での数値再現は難しく、追試の目標は「μ_emp が μ=0.45 の近傍に来て、かつ閾値選択基準を変えると 0 に潰れる現象が再現されること」**（傾向の再現）に置くのが現実的と判断する。
@@ -104,7 +104,7 @@
   │   ├── audit_utils.py   … 監査ロジック（FPR/FNR・μ 推定・信頼区間）
   │   └── mst/
   │       ├── __init__.py
-  │       ├── mst.py       … dpmm の MST を薄くラップし白箱特徴を露出
+  │       ├── mst.py       … dpmm の MST を薄くラップしホワイトボックス特徴を露出
   │       └── adp2gdp.py   … (ε,δ) ↔ μ-GDP 変換
   └── data/                … features.pkl（事前計算特徴）、*.pdf（tradeoff/valid/abl 図）
   ```
@@ -118,7 +118,7 @@
 攻撃・監査のパイプラインは典型的な **membership inference ベースの経験的 DP 監査**:
 
 1. **worst-case データ構成**（`run_attack.py`）: `N_COLS=3` の全 0 行列を `df_out`、そこに 1 行だけ全 1 のレコードを足したものを `df_in` とする隣接データセット。差分は 1 レコード（"canary"）。`EPSILON=1, DELTA=1e-2`, 合成サンプル長 `LEN_SYNTH=25`, 試行 `N_ALL=5000`。
-2. **特徴量化**: 合成データに対するクエリ集合のカウント（黒箱特徴）＋ `model.measures` から取り出した周辺測定値（白箱特徴）を連結。`df_in / df_out` それぞれで MST を 5000 回学習・生成し特徴を蓄積 → `data/features.pkl`。
+2. **特徴量化**: 合成データに対するクエリ集合のカウント（ブラックボックス特徴）＋ `model.measures` から取り出した周辺測定値（ホワイトボックス特徴）を連結。`df_in / df_out` それぞれで MST を 5000 回学習・生成し特徴を蓄積 → `data/features.pkl`。
 3. **攻撃モデル**（`audit_utils.run_audit`）: out/in 特徴を Train/Valid/Test に分割し、`GradientBoostingClassifier`（または RandomForest）を訓練。**閾値選択は Valid のみで行い、Test は 1 回だけ評価**（評価の公平性・リーク防止が設計に組み込まれている）。
 4. **μ の推定**:
    - 点推定 `_mu_from_fpr_fnr`: `μ = Φ⁻¹(1−FPR) − Φ⁻¹(FNR)`（GDP のトレードオフ曲線から）。
@@ -128,7 +128,7 @@
 - 依存（`environment.yml`）`[5]`: python=3.11, tqdm, scikit-learn, pandas, matplotlib, jupyterlab, pip 経由で **dpmm** と **riskcal**。
 - `mst/mst.py` は `dpmm.models.base` を import する **dpmm 依存のラッパ**で、`private-pgm` の MST を一般化したもの `[5]`。
 
-> 🔎 **推定**: 公開コードに見える範囲は **MST の黒箱+白箱監査**が中心。abstract は AIM も対象とするが、`code/` 配下に `aim` ディレクトリは見当たらず（`mst/` のみ）`[4][5]`。AIM 監査のコードは（a）notebook 内に直書き、（b）未公開、（c）dpmm 本体の AIM を直接呼ぶ、のいずれか。PDF 本文と `run_audit.ipynb` の確認で切り分ける必要がある。
+> 🔎 **推定**: 公開コードに見える範囲は **MST のブラックボックス+ホワイトボックス監査**が中心。abstract は AIM も対象とするが、`code/` 配下に `aim` ディレクトリは見当たらず（`mst/` のみ）`[4][5]`。AIM 監査のコードは（a）notebook 内に直書き、（b）未公開、（c）dpmm 本体の AIM を直接呼ぶ、のいずれか。PDF 本文と `run_audit.ipynb` の確認で切り分ける必要がある。
 
 ---
 

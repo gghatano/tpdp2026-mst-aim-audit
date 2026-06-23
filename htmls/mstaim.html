@@ -136,10 +136,10 @@ footer { max-width: 1180px; margin: 0 auto; padding: 24px; color: var(--muted); 
 <p>🔎 <strong>含意（再現上）</strong>: この帰着により、主実験では <strong>MST のみを実装・監査すれば AIM もカバーされる</strong>[1]。公開コードに <code>aim/</code> ディレクトリが無く <code>mst/</code> のみでも主構成として整合する理由がこれである[survey]。AIM 名義の独立再現が意味を持つのは、制限を緩めた高次 marginal 設定（原論文 付録 A）のみ[1]。</p>
 </blockquote>
 <h2 id="5-marginal-a">5. 高次 marginal への緩和（付録 A、本追試はスコープ外）</h2>
-<p>原論文 付録 A は制限を緩め、<strong>2-way・3-way marginal</strong>で学習した MST/AIM を監査する[1]。依存グラフは固定したまま予算をガウス測定に全振りするため、依然 μ-GDP 枠で解析できる[1]。結果として高次でも監査は弱まらず、むしろわずかに tight（3-way で μ_emp≈0.44、2-way 黒箱で ≈0.43、vs implied μ=0.45）<a href="#ref-1">[1]</a>。本追試（スコープ A+B）では未実施である[計画]。</p>
+<p>原論文 付録 A は制限を緩め、<strong>2-way・3-way marginal</strong>で学習した MST/AIM を監査する[1]。依存グラフは固定したまま予算をガウス測定に全振りするため、依然 μ-GDP 枠で解析できる[1]。結果として高次でも監査は弱まらず、むしろわずかに tight（3-way で μ_emp≈0.44、2-way ブラックボックスで ≈0.43、vs implied μ=0.45）<a href="#ref-1">[1]</a>。本追試（スコープ A+B）では未実施である[計画]。</p>
 <h2 id="6">6. まとめ（このページの主張）</h2>
 <ul>
-<li>MST/AIM は select-measure-generate に従い、指数機構で選択・ガウス機構で測定・PGM で生成する[1]<a href="#ref-S3">[S3]</a>[S5]<a href="#ref-S6">[S6]</a>。</li>
+<li>MST/AIM は select-measure-generate に従い、指数機構で選択・ガウス機構で測定・PGM で生成する[1][S3]<a href="#ref-S5">[S5]</a>[S6]。</li>
 <li>違いは選択する周辺の構造（MST=ペアの木 / AIM=適応的な高次）[1]<a href="#ref-S5">[S5]</a>[S6]。</li>
 <li>one-way 制限では選択が消え、両者が同一の independent-marginal モデルに帰着し、ガウス機構のみとなって μ-GDP 解析が可能になる[1]。</li>
 <li>ゆえに主構成では MST のみの監査で AIM もカバーされる[1]。</li>

@@ -6,7 +6,7 @@
 
 - 上流 `sassoftware/dpmm` の **`audit-dpmm` ブランチ** `experimental/audit_dpmm/code/` を `scripts/auditlib/` に移植。
 - 変更は**パッケージ化に伴う相対 import 化のみ**（`from mst import ...` → `from .adp2gdp import ...`）。
-  監査ロジック（worst-case 隣接データ・黒箱/白箱特徴・joint-beta による μ 下界）は未改変。
+  監査ロジック（worst-case 隣接データ・ブラックボックス/ホワイトボックス特徴・joint-beta による μ 下界）は未改変。
 - `auditlib/mst.py` は dpmm 本体の MST を 1-way marginal のみに制限したラッパ（`dpmm.models.base.*` に依存）。
 
 ## DP ノイズの非決定性（再現性の核心）

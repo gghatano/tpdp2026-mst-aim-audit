@@ -10,7 +10,7 @@
 
 差分プライバシー（DP）合成データ生成器のうち MST [R5] と AIM [R6] は、強いプライバシー・有用性トレードオフと NIST コンペ優勝・公的統計での採用実績から広く普及している[1]。一方で、その**プライバシー保証を tight に監査する**こと（実装が主張通りの保証を満たすかを経験的に検証すること）は依然として難しく、特に **強プライバシー領域（ε=1 など）では従来の監査が緩い／ゼロの下界しか与えられなかった**[1]。
 
-本追試は、原論文の **Gaussian Differential Privacy（GDP）ベースの監査フレームワーク**を縮小規模で再現する。プライバシーを単一の (ε,δ) 値ではなく、強敵対者によるメンバーシップ推論攻撃（MIA）の **FPR–FNR トレードオフ全体**として測り、μ-GDP の単一パラメータ μ に要約する[1]。worst-case 隣接データセット（標的レコードを 1 件だけ加える構成）と hybrid black/white-box 脅威モデルのもとで、distinguishing game により経験的下界 μ_emp を推定する[1]。
+本追試は、原論文の **Gaussian Differential Privacy（GDP）ベースの監査フレームワーク**を縮小規模で再現する。プライバシーを単一の (ε,δ) 値ではなく、強い敵対者によるメンバーシップ推論攻撃（MIA）の **FPR–FNR トレードオフ全体**として測り、μ-GDP の単一パラメータ μ に要約する[1]。worst-case 隣接データセット（標的レコードを 1 件だけ加える構成）と hybrid black/white-box 脅威モデルのもとで、distinguishing game により経験的下界 μ_emp を推定する[1]。
 
 主要結果（縮小再現、out/in 各 **1,125 試行**、Default 構成、分割 train450/valid225/test450）: `(ε,δ)=(1,10⁻²)` の理論目標 **implied μ=0.45** に対し、経験的下界 **μ_emp=0.39**（点推定 μ̂=0.42、攻撃 AUC=0.62）を得た。縮小規模・分類器の差（GradientBoosting）により原論文の μ_emp≈0.43 [1] よりやや小さいが、**強プライバシー領域（ε=1）でゼロでない tight な下界**であり、μ_emp は試行数とともに implied μ へ近づいた（N=250→0.19、N=1,000→0.44）。さらに、閾値選択基準を不安定なもの（validation 上の μ̂ 最大化）に変えると **μ_emp が 0 に潰れる**ことを確認し、これは従来研究が強プライバシー領域で μ_emp=0 を報告した原因という原論文の説明 [1] を縮小規模で再現する。
 
@@ -68,10 +68,10 @@ worst-case 構成を用いる: Dout は同一レコード [0,0,0] を **10 件**
 ### 2.3 脅威モデル（hybrid black/white-box）
 
 hybrid black/white-box 敵対者を想定する[1]:
-- **黒箱特徴**: 合成データ上で離散ドメインの**全クエリ**を評価して得る（Query-based MIA [R17] に従う）[1]。
-- **白箱特徴**: モデル内部の **noisy one-way marginal counts**[1]。
+- **ブラックボックス特徴**: 合成データ上で離散ドメインの**全クエリ**を評価して得る（Query-based MIA [R17] に従う）[1]。
+- **ホワイトボックス特徴**: モデル内部の **noisy one-way marginal counts**[1]。
 
-両者を連結して攻撃分類器の入力とする。黒箱のみ／白箱のみとの比較はアブレーション（§3）で扱う。
+両者を連結して攻撃分類器の入力とする。ブラックボックスのみ／ホワイトボックスのみとの比較はアブレーション（§3）で扱う。
 
 ### 2.4 distinguishing game と分割（train/valid/test）
 
@@ -161,9 +161,9 @@ test 上の予測から TPR・FPR を計算し、Zanella-Béguelin ら [R18] に
 | 閾値選択 = max_μ_lower | 0.929 | validation に過適合し楽観的（test で過大評価の恐れ） |
 | 信頼区間 = bonferroni_cp | 0.177 | joint_beta より保守的 |
 | 分類器 = RandomForest | 0.315 | GradientBoosting より弱い |
-| 脅威モデル = 黒箱のみ | 0.261 | 白箱 marginal 特徴を落とすと低下＝白箱が効く |
+| 脅威モデル = ブラックボックスのみ | 0.261 | ホワイトボックス marginal 特徴を落とすと低下＝ホワイトボックスが効く |
 
-> 🔎 **所見（RQ3）**: 最重要の再現点は **max_μ̂ で μ_emp=0** である。validation 上で μ̂ を直接最大化する不安定な基準は過小な閾値を選んで FPR を過大にし、下界を 0 に潰す。これは「従来研究が強プライバシー領域で μ_emp=0 を報告した原因」という原論文の説明 [1] を、本縮小規模でも明確に再現する。また白箱特徴の寄与（hybrid 0.39 > 黒箱のみ 0.26）と joint_beta の優位（0.39 > bonferroni_cp 0.18）も確認され、Default 構成が最も tight という原論文の主張 [1] と整合する。
+> 🔎 **所見（RQ3）**: 最重要の再現点は **max_μ̂ で μ_emp=0** である。validation 上で μ̂ を直接最大化する不安定な基準は過小な閾値を選んで FPR を過大にし、下界を 0 に潰す。これは「従来研究が強プライバシー領域で μ_emp=0 を報告した原因」という原論文の説明 [1] を、本縮小規模でも明確に再現する。またホワイトボックス特徴の寄与（hybrid 0.39 > ブラックボックスのみ 0.26）と joint_beta の優位（0.39 > bonferroni_cp 0.18）も確認され、Default 構成が最も tight という原論文の主張 [1] と整合する。
 
 ### 3.5 補足: dpmm 単体での合成忠実度デモ（スコープ A）
 
@@ -182,7 +182,7 @@ test 上の予測から TPR・FPR を計算し、Zanella-Béguelin ら [R18] に
 本追試のスコープ外（**未測定**）である:
 
 - **完全再現 C**: N_ALL を原論文どおり 10,000 モデルとし、上流の run_audit.ipynb のプロットを完全再現すること[計画]。計算コストが大きく、E0 スモークによる外挿後に別途判断する。
-- **AIM / 高次 marginal（原論文 付録 A 相当）**: 2-way・3-way marginal で学習した MST/AIM の監査[1]。主構成では one-way 制限により MST=AIM に帰着するため未実施でも主結果はカバーされるが、付録 A の「高次でも監査は弱まらず μ_emp≈0.44（3-way）/0.43（2-way 黒箱）」[1] の再現は行わない[計画]。
+- **AIM / 高次 marginal（原論文 付録 A 相当）**: 2-way・3-way marginal で学習した MST/AIM の監査[1]。主構成では one-way 制限により MST=AIM に帰着するため未実施でも主結果はカバーされるが、付録 A の「高次でも監査は弱まらず μ_emp≈0.44（3-way）/0.43（2-way ブラックボックス）」[1] の再現は行わない[計画]。
 - **複数 (ε,δ) でのトレードオフ全面掃引**: 本追試は (ε,δ)=(1,10⁻²) の単一設定に絞る。
 
 ---
@@ -219,10 +219,10 @@ test 上の予測から TPR・FPR を計算し、Zanella-Béguelin ら [R18] に
 
 まず系統の整理: DP 合成データ生成器は大きく **marginal 系**（低次周辺を選んで測る。MST [R5]・AIM [R6] はこちら）と、**DP-SGD 系**（勾配のクリップ + ノイズ付加による深層生成。DP-GAN・PATE-GAN・DP-CTGAN 等）に分かれる。MST/AIM は DP-SGD ではない。
 
-本実装が依存する前提は次の 3 点である: ① worst-case カナリア [1,1,1]、② 攻撃特徴 = 黒箱クエリ + **白箱 noisy one-way marginal counts**（MST 内部構造に直結）[1]、③ 測定が**ガウス機構のみ**であること（ρ-zCDP → μ-GDP の tight 化の根拠）[1]。これらが他手法でどれだけ成り立つかで可否が決まる:
+本実装が依存する前提は次の 3 点である: ① worst-case カナリア [1,1,1]、② 攻撃特徴 = ブラックボックスクエリ + **ホワイトボックス noisy one-way marginal counts**（MST 内部構造に直結）[1]、③ 測定が**ガウス機構のみ**であること（ρ-zCDP → μ-GDP の tight 化の根拠）[1]。これらが他手法でどれだけ成り立つかで可否が決まる:
 
-- **他の marginal 系（PrivBayes・GEM・RAP・MWEM 等）**: 監査の方法論（MIA distinguishing game → FPR–FNR → μ）は流用できるが、白箱特徴は MST 専用のため作り直しが要る。Laplace 併用など純ガウスでない機構では μ-GDP の tight 化が崩れ、解析枠の付け替えが必要[計画]。→ **部分的に可能・要改修**。
-- **DP-SGD 系の生成器**: 監査の枠組み自体は手法非依存であり、DP-SGD の監査は文献が豊富である [R16]。ただし本リポジトリのコードでは扱えず、(a) 各生成器の実装、(b) 白箱特徴の勾配ベースへの置換、(c) DP-SGD 会計（μ の別経路）への対応、が必要[計画]。→ **概念的には可能だが別実装**。
+- **他の marginal 系（PrivBayes・GEM・RAP・MWEM 等）**: 監査の方法論（MIA distinguishing game → FPR–FNR → μ）は流用できるが、ホワイトボックス特徴は MST 専用のため作り直しが要る。Laplace 併用など純ガウスでない機構では μ-GDP の tight 化が崩れ、解析枠の付け替えが必要[計画]。→ **部分的に可能・要改修**。
+- **DP-SGD 系の生成器**: 監査の枠組み自体は手法非依存であり、DP-SGD の監査は文献が豊富である [R16]。ただし本リポジトリのコードでは扱えず、(a) 各生成器の実装、(b) ホワイトボックス特徴の勾配ベースへの置換、(c) DP-SGD のプライバシー会計（privacy accounting。μ の別経路）への対応、が必要[計画]。→ **概念的には可能だが別実装**。
 
 要するに、**監査の方法論（GDP・FPR–FNR トレードオフ）は手法非依存だが、本再現コードは MST/AIM の構造に密結合している**。他手法への横展開は本追試のスコープ外であり、§6 今後の課題に挙げる[計画]。
 
@@ -271,7 +271,7 @@ uv run python scripts/build_html.py
 技術的な定義・背景は本体から分離し、methods/ に置く（図ラベルは英語、本文は日本語）:
 
 - [methods/gdp-and-tradeoff.md](methods/gdp-and-tradeoff.md) — (ε,δ)-DP → ρ-zCDP → μ-GDP の関係、トレードオフ関数 T、G_μ、Neyman-Pearson、なぜ単一 (ε,δ) でなく曲線で見るのか。
-- [methods/mia-auditing.md](methods/mia-auditing.md) — メンバーシップ推論による DP 監査、distinguishing game、強敵対者モデル、worst-case カナリア、なぜ tight が難しいか、従来研究が μ_emp=0 だった理由。
+- [methods/mia-auditing.md](methods/mia-auditing.md) — メンバーシップ推論による DP 監査、distinguishing game、強い敵対者モデル、worst-case カナリア、なぜ tight が難しいか、従来研究が μ_emp=0 だった理由。
 - [methods/mst-aim.md](methods/mst-aim.md) — MST/AIM の select-measure-generate、指数機構・ガウス機構・PGM、MST と AIM の違い、one-way 制限で MST=AIM に帰着する理由。
 
 上流監査コード: [sassoftware/dpmm (audit-dpmm ブランチ)](https://github.com/sassoftware/dpmm/tree/audit-dpmm) experimental/audit_dpmm/[R2]。

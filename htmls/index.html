@@ -117,15 +117,15 @@ footer { max-width: 1180px; margin: 0 auto; padding: 24px; color: var(--muted); 
 <hr />
 <h2 id="abstract">Abstract</h2>
 <p>差分プライバシー（DP）合成データ生成器のうち MST <a href="#ref-R5">[R5]</a> と AIM <a href="#ref-R6">[R6]</a> は、強いプライバシー・有用性トレードオフと NIST コンペ優勝・公的統計での採用実績から広く普及している[1]。一方で、その<strong>プライバシー保証を tight に監査する</strong>こと（実装が主張通りの保証を満たすかを経験的に検証すること）は依然として難しく、特に <strong>強プライバシー領域（ε=1 など）では従来の監査が緩い／ゼロの下界しか与えられなかった</strong>[1]。</p>
-<p>本追試は、原論文の <strong>Gaussian Differential Privacy（GDP）ベースの監査フレームワーク</strong>を縮小規模で再現する。プライバシーを単一の (ε,δ) 値ではなく、強敵対者によるメンバーシップ推論攻撃（MIA）の <strong>FPR–FNR トレードオフ全体</strong>として測り、μ-GDP の単一パラメータ μ に要約する[1]。worst-case 隣接データセット（標的レコードを 1 件だけ加える構成）と hybrid black/white-box 脅威モデルのもとで、distinguishing game により経験的下界 μ_emp を推定する[1]。</p>
+<p>本追試は、原論文の <strong>Gaussian Differential Privacy（GDP）ベースの監査フレームワーク</strong>を縮小規模で再現する。プライバシーを単一の (ε,δ) 値ではなく、強い敵対者によるメンバーシップ推論攻撃（MIA）の <strong>FPR–FNR トレードオフ全体</strong>として測り、μ-GDP の単一パラメータ μ に要約する[1]。worst-case 隣接データセット（標的レコードを 1 件だけ加える構成）と hybrid black/white-box 脅威モデルのもとで、distinguishing game により経験的下界 μ_emp を推定する[1]。</p>
 <p>主要結果（縮小再現、out/in 各 <strong>1,125 試行</strong>、Default 構成、分割 train450/valid225/test450）: <code>(ε,δ)=(1,10⁻²)</code> の理論目標 <strong>implied μ=0.45</strong> に対し、経験的下界 <strong>μ_emp=0.39</strong>（点推定 μ̂=0.42、攻撃 AUC=0.62）を得た。縮小規模・分類器の差（GradientBoosting）により原論文の μ_emp≈0.43 <a href="#ref-1">[1]</a> よりやや小さいが、<strong>強プライバシー領域（ε=1）でゼロでない tight な下界</strong>であり、μ_emp は試行数とともに implied μ へ近づいた（N=250→0.19、N=1,000→0.44）。さらに、閾値選択基準を不安定なもの（validation 上の μ̂ 最大化）に変えると <strong>μ_emp が 0 に潰れる</strong>ことを確認し、これは従来研究が強プライバシー領域で μ_emp=0 を報告した原因という原論文の説明 <a href="#ref-1">[1]</a> を縮小規模で再現する。</p>
 <p>結論（暫定）: 本縮小追試は、原論文の主要な<strong>傾向</strong>をいずれも再現した: (1) 経験的下界が implied μ の近傍に来る（実装が自身のプライバシー解析と整合）、(2) 監査規模を増やすと下界が締まる、(3) 不安定な閾値選択が下界を 0 に潰す。数値の完全一致（μ_emp≈0.43）には至らないが、これは縮小規模（1,125 vs 5,000 試行）・分類器差・DP ノイズの非決定性（後述）に由来し、限界として明記する。</p>
 <hr />
 <h2 id="1">1. はじめに</h2>
 <h3 id="11">1.1 背景</h3>
-<p>DP 合成データは、形式的保証のもとで機微なテーブルデータを共有する有望な手段であり、生成モデルを慎重に較正したノイズとともに学習し、その出力（モデルパラメータ・生成サンプル）を任意のレコードの有無に対して近似的に区別不能にする（典型的にはパラメータ (ε,δ) で形式化）<a href="#ref-1">[1]</a>。中でも <strong>MST</strong> <a href="#ref-R5">[R5]</a> と <strong>AIM</strong> <a href="#ref-R6">[R6]</a> は select-measure-generate パラダイム（低次の周辺を選択し、ガウスノイズで測定し、それを保つよう合成する）<a href="#ref-R3">[R3]</a>[R5] に従い、NIST コンペ優勝 <a href="#ref-R8">[R8]</a>、主要ライブラリへの統合 [R2]<a href="#ref-R10">[R10]</a>[R11]、英国センサスデータ公開での採用 <a href="#ref-R9">[R9]</a> など、実運用での採用が進んでいる[1]。</p>
-<p>重要かつ広く使われるからこそ、その DP 保証を<strong>経験的に検証</strong>する必要がある。これが <strong>DP 監査</strong>[R12] を動機づける。DP 監査は、評価を DP 定義に整合する distinguishing game として枠付け、しばしばメンバーシップ推論攻撃（MIA）<a href="#ref-R13">[R13]</a>[R14] により実現して、漏洩推定値を主張された DP パラメータと比較する[1]。</p>
-<p>しかし MST に対する従来の監査 <a href="#ref-R1">[R1]</a>[R2] には課題が残る[1]:
+<p>DP 合成データは、形式的保証のもとで機微なテーブルデータを共有する有望な手段であり、生成モデルを慎重に較正したノイズとともに学習し、その出力（モデルパラメータ・生成サンプル）を任意のレコードの有無に対して近似的に区別不能にする（典型的にはパラメータ (ε,δ) で形式化）<a href="#ref-1">[1]</a>。中でも <strong>MST</strong> <a href="#ref-R5">[R5]</a> と <strong>AIM</strong> <a href="#ref-R6">[R6]</a> は select-measure-generate パラダイム（低次の周辺を選択し、ガウスノイズで測定し、それを保つよう合成する）[R3]<a href="#ref-R5">[R5]</a> に従い、NIST コンペ優勝 <a href="#ref-R8">[R8]</a>、主要ライブラリへの統合 <a href="#ref-R2">[R2]</a>[R10]<a href="#ref-R11">[R11]</a>、英国センサスデータ公開での採用 <a href="#ref-R9">[R9]</a> など、実運用での採用が進んでいる[1]。</p>
+<p>重要かつ広く使われるからこそ、その DP 保証を<strong>経験的に検証</strong>する必要がある。これが <strong>DP 監査</strong>[R12] を動機づける。DP 監査は、評価を DP 定義に整合する distinguishing game として枠付け、しばしばメンバーシップ推論攻撃（MIA）[R13]<a href="#ref-R14">[R14]</a> により実現して、漏洩推定値を主張された DP パラメータと比較する[1]。</p>
+<p>しかし MST に対する従来の監査 [R1]<a href="#ref-R2">[R2]</a> には課題が残る[1]:
 - 第一に、既存監査は <strong>強プライバシー領域（例: ε=1）で限られた知見しか与えず</strong>、ドメイン漏洩や浮動小数点脆弱性のような実装上の問題がない限り、<strong>緩い／ゼロの結果</strong>しか得られなかった[1]。
 - 第二に、従来研究は <strong>単一の (ε,δ) 設定</strong>での結果を報告するにとどまり、プライバシーのトレードオフ全体を特徴づけられず、不完全あるいは誤解を招く結論につながりうる[1]<a href="#ref-R7">[R7]</a>。</p>
 <h3 id="12-rq">1.2 研究課題（RQ）</h3>
@@ -154,15 +154,15 @@ footer { max-width: 1180px; margin: 0 auto; padding: 24px; color: var(--muted); 
 <p>本追試は、Annamalai ら <a href="#ref-R1">[R1]</a> の経験的 DP 監査フレームワークを採用する。これはプライバシー監査を MIA による仮説検定とみなすものである[1]。チャレンジャがランダム化機構を 2 つの隣接データセットで多数回独立に学習し、その出力を敵対者に与え、敵対者がどちらのデータセットが使われたかを区別しようとする[1]。結果の false-positive 率（FPR）と false-negative 率（FNR）が (ε,δ) トレードオフ曲線上の 1 点を定め、理論フロンティアと比較したうえで μ-GDP のもとでの経験的 μ に変換される[1]。</p>
 <p>プライバシーを単一の (ε,δ) でなく <strong>FPR–FNR トレードオフ全体</strong>として測り、μ-GDP の単一パラメータ μ に要約することが本枠組みの中核である[1]。(ε,δ)-DP・ρ-zCDP・μ-GDP の相互関係と、なぜ単一値でなく曲線で見るのかは付録 B → <a href="gdp.html">methods/gdp-and-tradeoff.md</a> で解説する。</p>
 <h3 id="22-worst-case">2.2 worst-case 隣接データと標的レコード</h3>
-<p>worst-case 構成を用いる: Dout は同一レコード [0,0,0] を <strong>10 件</strong>含み、Din はそこに標的レコード [1,1,1] を <strong>1 件</strong>加える[1]。これは標的レコードの全周辺への影響を最大化し、厳しいプライバシーテストを与える。このような worst-case 設定は DP 定義と整合し、tight な監査を得るためにしばしば必要とされる[1]<a href="#ref-R15">[R15]</a>[R16]。</p>
+<p>worst-case 構成を用いる: Dout は同一レコード [0,0,0] を <strong>10 件</strong>含み、Din はそこに標的レコード [1,1,1] を <strong>1 件</strong>加える[1]。これは標的レコードの全周辺への影響を最大化し、厳しいプライバシーテストを与える。このような worst-case 設定は DP 定義と整合し、tight な監査を得るためにしばしば必要とされる[1][R15]<a href="#ref-R16">[R16]</a>。</p>
 <blockquote class="badge-note">
 <p>🔎 <strong>考察（実装差）</strong>: 上流公開コードの既定値（Dout サイズ・合成サイズ LEN_SYNTH=25・試行数 N_ALL）と本文記述（Dout=10 行・合成サイズ 50）には差がありうる[survey]。本追試は再現注意点として差分を記録し、傾向再現を目標とする。</p>
 </blockquote>
 <h3 id="23-hybrid-blackwhite-box">2.3 脅威モデル（hybrid black/white-box）</h3>
 <p>hybrid black/white-box 敵対者を想定する[1]:
-- <strong>黒箱特徴</strong>: 合成データ上で離散ドメインの<strong>全クエリ</strong>を評価して得る（Query-based MIA <a href="#ref-R17">[R17]</a> に従う）<a href="#ref-1">[1]</a>。
-- <strong>白箱特徴</strong>: モデル内部の <strong>noisy one-way marginal counts</strong>[1]。</p>
-<p>両者を連結して攻撃分類器の入力とする。黒箱のみ／白箱のみとの比較はアブレーション（§3）で扱う。</p>
+- <strong>ブラックボックス特徴</strong>: 合成データ上で離散ドメインの<strong>全クエリ</strong>を評価して得る（Query-based MIA <a href="#ref-R17">[R17]</a> に従う）<a href="#ref-1">[1]</a>。
+- <strong>ホワイトボックス特徴</strong>: モデル内部の <strong>noisy one-way marginal counts</strong>[1]。</p>
+<p>両者を連結して攻撃分類器の入力とする。ブラックボックスのみ／ホワイトボックスのみとの比較はアブレーション（§3）で扱う。</p>
 <h3 id="24-distinguishing-game-trainvalidtest">2.4 distinguishing game と分割（train/valid/test）</h3>
 <p>(ε,δ)=(1,10⁻²) で <strong>10,000 個の独立モデル</strong>（Dout/Din 各 5,000）を学習し、各モデルがサイズ 50 の合成データセットと noisy marginals を出力する[1]。敵対者は釣り合いの取れたラベル付き出力を受け取り、それを <strong>train 4,000 / validation 2,000 / test 4,000</strong> に分割する[1]。</p>
 <p>公平性・リーク防止の要として、<strong>閾値（decision threshold）τ* は validation のみで選び</strong>（advantage = TPR−FPR を最大化）、<strong>test は最終評価に 1 回だけ用いる</strong>[1]。</p>
@@ -324,14 +324,14 @@ footer { max-width: 1180px; margin: 0 auto; padding: 24px; color: var(--muted); 
 <td>GradientBoosting より弱い</td>
 </tr>
 <tr>
-<td>脅威モデル = 黒箱のみ</td>
+<td>脅威モデル = ブラックボックスのみ</td>
 <td>0.261</td>
-<td>白箱 marginal 特徴を落とすと低下＝白箱が効く</td>
+<td>ホワイトボックス marginal 特徴を落とすと低下＝ホワイトボックスが効く</td>
 </tr>
 </tbody>
 </table>
 <blockquote class="badge-note">
-<p>🔎 <strong>所見（RQ3）</strong>: 最重要の再現点は <strong>max_μ̂ で μ_emp=0</strong> である。validation 上で μ̂ を直接最大化する不安定な基準は過小な閾値を選んで FPR を過大にし、下界を 0 に潰す。これは「従来研究が強プライバシー領域で μ_emp=0 を報告した原因」という原論文の説明 <a href="#ref-1">[1]</a> を、本縮小規模でも明確に再現する。また白箱特徴の寄与（hybrid 0.39 &gt; 黒箱のみ 0.26）と joint_beta の優位（0.39 &gt; bonferroni_cp 0.18）も確認され、Default 構成が最も tight という原論文の主張 <a href="#ref-1">[1]</a> と整合する。</p>
+<p>🔎 <strong>所見（RQ3）</strong>: 最重要の再現点は <strong>max_μ̂ で μ_emp=0</strong> である。validation 上で μ̂ を直接最大化する不安定な基準は過小な閾値を選んで FPR を過大にし、下界を 0 に潰す。これは「従来研究が強プライバシー領域で μ_emp=0 を報告した原因」という原論文の説明 <a href="#ref-1">[1]</a> を、本縮小規模でも明確に再現する。またホワイトボックス特徴の寄与（hybrid 0.39 &gt; ブラックボックスのみ 0.26）と joint_beta の優位（0.39 &gt; bonferroni_cp 0.18）も確認され、Default 構成が最も tight という原論文の主張 <a href="#ref-1">[1]</a> と整合する。</p>
 </blockquote>
 <h3 id="35-dpmm-a">3.5 補足: dpmm 単体での合成忠実度デモ（スコープ A）</h3>
 <blockquote>
@@ -347,7 +347,7 @@ footer { max-width: 1180px; margin: 0 auto; padding: 24px; color: var(--muted); 
 <p>本追試のスコープ外（<strong>未測定</strong>）である:</p>
 <ul>
 <li><strong>完全再現 C</strong>: N_ALL を原論文どおり 10,000 モデルとし、上流の run_audit.ipynb のプロットを完全再現すること[計画]。計算コストが大きく、E0 スモークによる外挿後に別途判断する。</li>
-<li><strong>AIM / 高次 marginal（原論文 付録 A 相当）</strong>: 2-way・3-way marginal で学習した MST/AIM の監査[1]。主構成では one-way 制限により MST=AIM に帰着するため未実施でも主結果はカバーされるが、付録 A の「高次でも監査は弱まらず μ_emp≈0.44（3-way）/0.43（2-way 黒箱）」<a href="#ref-1">[1]</a> の再現は行わない[計画]。</li>
+<li><strong>AIM / 高次 marginal（原論文 付録 A 相当）</strong>: 2-way・3-way marginal で学習した MST/AIM の監査[1]。主構成では one-way 制限により MST=AIM に帰着するため未実施でも主結果はカバーされるが、付録 A の「高次でも監査は弱まらず μ_emp≈0.44（3-way）/0.43（2-way ブラックボックス）」<a href="#ref-1">[1]</a> の再現は行わない[計画]。</li>
 <li><strong>複数 (ε,δ) でのトレードオフ全面掃引</strong>: 本追試は (ε,δ)=(1,10⁻²) の単一設定に絞る。</li>
 </ul>
 <hr />
@@ -380,10 +380,10 @@ footer { max-width: 1180px; margin: 0 auto; padding: 24px; color: var(--muted); 
 <p>🔎 <strong>考察（適用範囲）</strong>。「この監査が MST/AIM 以外に使えるか」は手法名でなく、<strong>監査コードが置く前提</strong>で決まる[計画]。</p>
 </blockquote>
 <p>まず系統の整理: DP 合成データ生成器は大きく <strong>marginal 系</strong>（低次周辺を選んで測る。MST <a href="#ref-R5">[R5]</a>・AIM <a href="#ref-R6">[R6]</a> はこちら）と、<strong>DP-SGD 系</strong>（勾配のクリップ + ノイズ付加による深層生成。DP-GAN・PATE-GAN・DP-CTGAN 等）に分かれる。MST/AIM は DP-SGD ではない。</p>
-<p>本実装が依存する前提は次の 3 点である: ① worst-case カナリア [1,1,1]、② 攻撃特徴 = 黒箱クエリ + <strong>白箱 noisy one-way marginal counts</strong>（MST 内部構造に直結）<a href="#ref-1">[1]</a>、③ 測定が<strong>ガウス機構のみ</strong>であること（ρ-zCDP → μ-GDP の tight 化の根拠）<a href="#ref-1">[1]</a>。これらが他手法でどれだけ成り立つかで可否が決まる:</p>
+<p>本実装が依存する前提は次の 3 点である: ① worst-case カナリア [1,1,1]、② 攻撃特徴 = ブラックボックスクエリ + <strong>ホワイトボックス noisy one-way marginal counts</strong>（MST 内部構造に直結）<a href="#ref-1">[1]</a>、③ 測定が<strong>ガウス機構のみ</strong>であること（ρ-zCDP → μ-GDP の tight 化の根拠）<a href="#ref-1">[1]</a>。これらが他手法でどれだけ成り立つかで可否が決まる:</p>
 <ul>
-<li><strong>他の marginal 系（PrivBayes・GEM・RAP・MWEM 等）</strong>: 監査の方法論（MIA distinguishing game → FPR–FNR → μ）は流用できるが、白箱特徴は MST 専用のため作り直しが要る。Laplace 併用など純ガウスでない機構では μ-GDP の tight 化が崩れ、解析枠の付け替えが必要[計画]。→ <strong>部分的に可能・要改修</strong>。</li>
-<li><strong>DP-SGD 系の生成器</strong>: 監査の枠組み自体は手法非依存であり、DP-SGD の監査は文献が豊富である <a href="#ref-R16">[R16]</a>。ただし本リポジトリのコードでは扱えず、(a) 各生成器の実装、(b) 白箱特徴の勾配ベースへの置換、(c) DP-SGD 会計（μ の別経路）への対応、が必要[計画]。→ <strong>概念的には可能だが別実装</strong>。</li>
+<li><strong>他の marginal 系（PrivBayes・GEM・RAP・MWEM 等）</strong>: 監査の方法論（MIA distinguishing game → FPR–FNR → μ）は流用できるが、ホワイトボックス特徴は MST 専用のため作り直しが要る。Laplace 併用など純ガウスでない機構では μ-GDP の tight 化が崩れ、解析枠の付け替えが必要[計画]。→ <strong>部分的に可能・要改修</strong>。</li>
+<li><strong>DP-SGD 系の生成器</strong>: 監査の枠組み自体は手法非依存であり、DP-SGD の監査は文献が豊富である <a href="#ref-R16">[R16]</a>。ただし本リポジトリのコードでは扱えず、(a) 各生成器の実装、(b) ホワイトボックス特徴の勾配ベースへの置換、(c) DP-SGD のプライバシー会計（privacy accounting。μ の別経路）への対応、が必要[計画]。→ <strong>概念的には可能だが別実装</strong>。</li>
 </ul>
 <p>要するに、<strong>監査の方法論（GDP・FPR–FNR トレードオフ）は手法非依存だが、本再現コードは MST/AIM の構造に密結合している</strong>。他手法への横展開は本追試のスコープ外であり、§6 今後の課題に挙げる[計画]。</p>
 <hr />
@@ -424,7 +424,7 @@ uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </sp
 <p>技術的な定義・背景は本体から分離し、methods/ に置く（図ラベルは英語、本文は日本語）:</p>
 <ul>
 <li><a href="gdp.html">methods/gdp-and-tradeoff.md</a> — (ε,δ)-DP → ρ-zCDP → μ-GDP の関係、トレードオフ関数 T、G_μ、Neyman-Pearson、なぜ単一 (ε,δ) でなく曲線で見るのか。</li>
-<li><a href="mia.html">methods/mia-auditing.md</a> — メンバーシップ推論による DP 監査、distinguishing game、強敵対者モデル、worst-case カナリア、なぜ tight が難しいか、従来研究が μ_emp=0 だった理由。</li>
+<li><a href="mia.html">methods/mia-auditing.md</a> — メンバーシップ推論による DP 監査、distinguishing game、強い敵対者モデル、worst-case カナリア、なぜ tight が難しいか、従来研究が μ_emp=0 だった理由。</li>
 <li><a href="mstaim.html">methods/mst-aim.md</a> — MST/AIM の select-measure-generate、指数機構・ガウス機構・PGM、MST と AIM の違い、one-way 制限で MST=AIM に帰着する理由。</li>
 </ul>
 <p>上流監査コード: <a href="https://github.com/sassoftware/dpmm/tree/audit-dpmm">sassoftware/dpmm (audit-dpmm ブランチ)</a> experimental/audit_dpmm/<a href="#ref-R2">[R2]</a>。</p>
