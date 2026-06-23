@@ -79,18 +79,18 @@ footer { max-width: 1180px; margin: 0 auto; padding: 24px; color: var(--muted); 
 <p>技術解説ページ（モードA）。<a href="index.html">REPORT.md</a> §2.2・§2.6 から参照される補助資料。図ラベルは英語、本文は日本語。事実は出典タグ <code>[n]</code>（末尾の対応表）、筆者の補足は 🔎。</p>
 </blockquote>
 <h2 id="1-select-measure-generate">1. select-measure-generate パラダイム</h2>
-<p>MST [S5] と AIM [S6] は、いずれも <strong>select-measure-generate</strong>（選択・測定・生成）という共通レシピに従う DP 合成データ生成器である[S3][S5]:</p>
+<p>MST <a href="#ref-S5">[S5]</a> と AIM <a href="#ref-S6">[S6]</a> は、いずれも <strong>select-measure-generate</strong>（選択・測定・生成）という共通レシピに従う DP 合成データ生成器である[S3]<a href="#ref-S5">[S5]</a>:</p>
 <ol>
 <li><strong>Select（選択）</strong>: データの統計を要約する<strong>低次の周辺分布（marginal）</strong>を選ぶ。どの周辺が情報的かを <strong>指数機構（Exponential mechanism）</strong>[S_exp] で DP に選択する[1]。</li>
-<li><strong>Measure（測定）</strong>: 選んだ周辺のカウントを <strong>ガウス機構（Gaussian mechanism）</strong>[S_gauss] で測る（ノイズを加える）[1]。プライバシー予算の大半はここで消費される。</li>
-<li><strong>Generate（生成）</strong>: noisy な周辺に整合する合成データを、<strong>グラフィカルモデル推論（PGM, Private-PGM）</strong>[S_pgm] で生成する[1][S3]。</li>
+<li><strong>Measure（測定）</strong>: 選んだ周辺のカウントを <strong>ガウス機構（Gaussian mechanism）</strong>[S_gauss] で測る（ノイズを加える）<a href="#ref-1">[1]</a>。プライバシー予算の大半はここで消費される。</li>
+<li><strong>Generate（生成）</strong>: noisy な周辺に整合する合成データを、<strong>グラフィカルモデル推論（PGM, Private-PGM）</strong>[S_pgm] で生成する[1]<a href="#ref-S3">[S3]</a>。</li>
 </ol>
 <p>両者とも <strong>one-way marginal（単変量周辺）から出発</strong>する[1]。</p>
 <blockquote class="badge-note">
 <p>🔎 <strong>直感</strong>: 「データ全体をそのまま守る」のでなく、「重要な低次統計だけを DP で測り、それを満たす人工データを作る」。低次に絞ることでノイズ予算を効率よく使え、強いプライバシー・有用性トレードオフを得る[1]。</p>
 </blockquote>
 <h2 id="2-gdp">2. ガウス機構と μ-GDP の接続</h2>
-<p>測定に<strong>ガウス機構のみ</strong>を使う構成では、消費するプライバシーが ρ-zCDP で tight に積算でき、ρ から <code>μ=√(2ρ)</code> で μ-GDP が直接定まる[1][S19]（→ <a href="gdp.html">methods/gdp-and-tradeoff.md</a>）。これが監査を μ-GDP 枠で解析可能にする鍵である。指数機構による選択ステップが入ると純ガウスでなくなるため、本監査では選択を固定して測定のみに予算を割り当てる構成を採る（§4）。</p>
+<p>測定に<strong>ガウス機構のみ</strong>を使う構成では、消費するプライバシーが ρ-zCDP で tight に積算でき、ρ から <code>μ=√(2ρ)</code> で μ-GDP が直接定まる[1]<a href="#ref-S19">[S19]</a>（→ <a href="gdp.html">methods/gdp-and-tradeoff.md</a>）。これが監査を μ-GDP 枠で解析可能にする鍵である。指数機構による選択ステップが入ると純ガウスでなくなるため、本監査では選択を固定して測定のみに予算を割り当てる構成を採る（§4）。</p>
 <h2 id="3-mst-aim">3. MST と AIM の違い</h2>
 <table>
 <thead>
@@ -123,42 +123,42 @@ footer { max-width: 1180px; margin: 0 auto; padding: 24px; color: var(--muted); 
 </tr>
 </tbody>
 </table>
-<p>要するに MST はペア周辺の木で依存構造を表し、AIM はより高次の周辺を貪欲・適応的に積み増す[1][S5][S6]。</p>
+<p>要するに MST はペア周辺の木で依存構造を表し、AIM はより高次の周辺を貪欲・適応的に積み増す[1]<a href="#ref-S5">[S5]</a>[S6]。</p>
 <h2 id="4-one-way-mst-aim">4. なぜ one-way 制限で MST = AIM に帰着するか</h2>
 <p>本監査は MST/AIM を <strong>one-way marginal のみを測定する制限構成</strong>で扱う[1]。このとき:</p>
 <ul>
 <li>依存グラフは<strong>固定</strong>され、高次（ペア・3-way 等）の周辺は<strong>選択されない</strong>[1]。</li>
 <li>よって MST の「木選択」も AIM の「適応的な高次選択」も<strong>働かず</strong>、両者は<strong>同一の independent-marginal モデル</strong>（各変数を独立に noisy one-way marginal で表すモデル）に帰着する[1]。</li>
 <li>全予算が one-way 測定（ガウス機構）に割り当てられ、選択ステップの指数機構が消えるため、<strong>ガウス機構のみ</strong>となり μ-GDP 枠で解析できる[1]。</li>
-<li>さらにドメイン圧縮（domain compression）を無効化し、追加のバイアス源を避ける[1][S14]。</li>
+<li>さらにドメイン圧縮（domain compression）を無効化し、追加のバイアス源を避ける[1]<a href="#ref-S14">[S14]</a>。</li>
 </ul>
 <blockquote class="badge-note">
 <p>🔎 <strong>含意（再現上）</strong>: この帰着により、主実験では <strong>MST のみを実装・監査すれば AIM もカバーされる</strong>[1]。公開コードに <code>aim/</code> ディレクトリが無く <code>mst/</code> のみでも主構成として整合する理由がこれである[survey]。AIM 名義の独立再現が意味を持つのは、制限を緩めた高次 marginal 設定（原論文 付録 A）のみ[1]。</p>
 </blockquote>
 <h2 id="5-marginal-a">5. 高次 marginal への緩和（付録 A、本追試はスコープ外）</h2>
-<p>原論文 付録 A は制限を緩め、<strong>2-way・3-way marginal</strong>で学習した MST/AIM を監査する[1]。依存グラフは固定したまま予算をガウス測定に全振りするため、依然 μ-GDP 枠で解析できる[1]。結果として高次でも監査は弱まらず、むしろわずかに tight（3-way で μ_emp≈0.44、2-way 黒箱で ≈0.43、vs implied μ=0.45）[1]。本追試（スコープ A+B）では未実施である[計画]。</p>
+<p>原論文 付録 A は制限を緩め、<strong>2-way・3-way marginal</strong>で学習した MST/AIM を監査する[1]。依存グラフは固定したまま予算をガウス測定に全振りするため、依然 μ-GDP 枠で解析できる[1]。結果として高次でも監査は弱まらず、むしろわずかに tight（3-way で μ_emp≈0.44、2-way 黒箱で ≈0.43、vs implied μ=0.45）<a href="#ref-1">[1]</a>。本追試（スコープ A+B）では未実施である[計画]。</p>
 <h2 id="6">6. まとめ（このページの主張）</h2>
 <ul>
-<li>MST/AIM は select-measure-generate に従い、指数機構で選択・ガウス機構で測定・PGM で生成する[1][S3][S5][S6]。</li>
-<li>違いは選択する周辺の構造（MST=ペアの木 / AIM=適応的な高次）[1][S5][S6]。</li>
+<li>MST/AIM は select-measure-generate に従い、指数機構で選択・ガウス機構で測定・PGM で生成する[1]<a href="#ref-S3">[S3]</a>[S5]<a href="#ref-S6">[S6]</a>。</li>
+<li>違いは選択する周辺の構造（MST=ペアの木 / AIM=適応的な高次）[1]<a href="#ref-S5">[S5]</a>[S6]。</li>
 <li>one-way 制限では選択が消え、両者が同一の independent-marginal モデルに帰着し、ガウス機構のみとなって μ-GDP 解析が可能になる[1]。</li>
 <li>ゆえに主構成では MST のみの監査で AIM もカバーされる[1]。</li>
 </ul>
 <hr />
 <h2 id="_1">出典対応表（本ページ）</h2>
 <blockquote>
-<p>採番は REPORT.md の References と共通。本ページ固有の補助タグは機構名（[S_exp] 等）。</p>
+<p>本ページの出典タグ（<a href="#ref-S3">[S3]</a> など）はこの表の各項目へリンクする。末尾の「REPORT の [Rn]」は本体レポートの References の対応番号。</p>
 </blockquote>
 <ul>
-<li><strong>[1]</strong> = [本文全般]: Ganev, Annamalai, Kulynych. <em>Tight Auditing of Differential Privacy in MST and AIM</em>. TPDP 2026. arXiv:2604.18352.</li>
-<li><strong>[R3]</strong> = [S3]: McKenna, Liu. <em>A Simple Recipe for Private Synthetic Data Generation</em>. DifferentialPrivacy.org, 2022.（select-measure-generate）</li>
-<li><strong>[R5]</strong> = [S5]: McKenna, Miklau, Sheldon. <em>Winning the NIST Contest</em> (MST). JPC, 2021.</li>
-<li><strong>[R6]</strong> = [S6]: McKenna, Mullins, Sheldon, Miklau. <em>AIM</em>. PVLDB, 2022.</li>
-<li><strong>[R19]</strong> = [S19]: Dong, Roth, Su. <em>Gaussian Differential Privacy</em>. JRSSB, 2022.（ρ→μ）</li>
-<li><strong>[S_exp]</strong>: McSherry, Talwar. <em>Mechanism Design via Differential Privacy</em> (指数機構). FOCS, 2007.（原論文 [30]）／ Dwork et al. <em>Our data, ourselves</em> も参照（原論文 [12]）</li>
-<li><strong>[S_gauss]</strong>: ガウス機構（原論文では McSherry &amp; Talwar [30] / Dwork &amp; Roth [11] の文脈で参照）</li>
-<li><strong>[S_pgm]</strong>: McKenna, Sheldon, Miklau. <em>Graphical-Model Based Estimation and Inference for DP</em> (Private-PGM). ICML, 2019.（原論文 [27]）</li>
-<li><strong>[S14]</strong>: Ganev, Oprisanu, De Cristofaro. <em>Robin Hood and Matthew Effects</em>. ICML, 2022.（ドメイン圧縮のバイアス。原論文 [14]）</li>
+<li><strong id="ref-1">[1]</strong> Ganev, Annamalai, Kulynych. <em>Tight Auditing of Differential Privacy in MST and AIM</em>. TPDP 2026. arXiv:2604.18352.（本文全般。REPORT の <a href="#ref-1">[1]</a>）</li>
+<li><strong id="ref-S3">[S3]</strong> McKenna, Liu. <em>A Simple Recipe for Private Synthetic Data Generation</em>. DifferentialPrivacy.org, 2022.（select-measure-generate。REPORT の [R3]）</li>
+<li><strong id="ref-S5">[S5]</strong> McKenna, Miklau, Sheldon. <em>Winning the NIST Contest</em> (MST). JPC, 2021.（REPORT の [R5]）</li>
+<li><strong id="ref-S6">[S6]</strong> McKenna, Mullins, Sheldon, Miklau. <em>AIM</em>. PVLDB, 2022.（REPORT の [R6]）</li>
+<li><strong id="ref-S19">[S19]</strong> Dong, Roth, Su. <em>Gaussian Differential Privacy</em>. JRSSB, 2022.（ρ→μ。REPORT の [R19]）</li>
+<li><strong id="ref-S_exp">[S_exp]</strong> McSherry, Talwar. <em>Mechanism Design via Differential Privacy</em> (指数機構). FOCS, 2007.（原論文 [30]）／ Dwork et al. <em>Our data, ourselves</em> も参照（原論文 [12]）</li>
+<li><strong id="ref-S_gauss">[S_gauss]</strong> ガウス機構（原論文では McSherry &amp; Talwar / Dwork &amp; Roth の文脈で参照）</li>
+<li><strong id="ref-S_pgm">[S_pgm]</strong> McKenna, Sheldon, Miklau. <em>Graphical-Model Based Estimation and Inference for DP</em> (Private-PGM). ICML, 2019.（原論文 [27]）</li>
+<li><strong id="ref-S14">[S14]</strong> Ganev, Oprisanu, De Cristofaro. <em>Robin Hood and Matthew Effects</em>. ICML, 2022.（ドメイン圧縮のバイアス。原論文 [14]）</li>
 </ul></article>
 </div>
 <footer>Source: <a href="https://github.com/gghatano/tpdp2026-mst-aim-audit">https://github.com/gghatano/tpdp2026-mst-aim-audit</a> · Upstream: <a href="https://github.com/sassoftware/dpmm">https://github.com/sassoftware/dpmm</a></footer>

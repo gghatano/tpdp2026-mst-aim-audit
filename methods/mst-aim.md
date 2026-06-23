@@ -55,14 +55,14 @@ MST [S5] と AIM [S6] は、いずれも **select-measure-generate**（選択・
 
 ## 出典対応表（本ページ）
 
-> 採番は REPORT.md の References と共通。本ページ固有の補助タグは機構名（[S_exp] 等）。
+> 本ページの出典タグ（[S3] など）はこの表の各項目へリンクする。末尾の「REPORT の [Rn]」は本体レポートの References の対応番号。
 
-- **[1]** = [本文全般]: Ganev, Annamalai, Kulynych. *Tight Auditing of Differential Privacy in MST and AIM*. TPDP 2026. arXiv:2604.18352.
-- **[R3]** = [S3]: McKenna, Liu. *A Simple Recipe for Private Synthetic Data Generation*. DifferentialPrivacy.org, 2022.（select-measure-generate）
-- **[R5]** = [S5]: McKenna, Miklau, Sheldon. *Winning the NIST Contest* (MST). JPC, 2021.
-- **[R6]** = [S6]: McKenna, Mullins, Sheldon, Miklau. *AIM*. PVLDB, 2022.
-- **[R19]** = [S19]: Dong, Roth, Su. *Gaussian Differential Privacy*. JRSSB, 2022.（ρ→μ）
-- **[S_exp]**: McSherry, Talwar. *Mechanism Design via Differential Privacy* (指数機構). FOCS, 2007.（原論文 [30]）／ Dwork et al. *Our data, ourselves* も参照（原論文 [12]）
-- **[S_gauss]**: ガウス機構（原論文では McSherry & Talwar [30] / Dwork & Roth [11] の文脈で参照）
-- **[S_pgm]**: McKenna, Sheldon, Miklau. *Graphical-Model Based Estimation and Inference for DP* (Private-PGM). ICML, 2019.（原論文 [27]）
-- **[S14]**: Ganev, Oprisanu, De Cristofaro. *Robin Hood and Matthew Effects*. ICML, 2022.（ドメイン圧縮のバイアス。原論文 [14]）
+- **[1]** Ganev, Annamalai, Kulynych. *Tight Auditing of Differential Privacy in MST and AIM*. TPDP 2026. arXiv:2604.18352.（本文全般。REPORT の [1]）
+- **[S3]** McKenna, Liu. *A Simple Recipe for Private Synthetic Data Generation*. DifferentialPrivacy.org, 2022.（select-measure-generate。REPORT の [R3]）
+- **[S5]** McKenna, Miklau, Sheldon. *Winning the NIST Contest* (MST). JPC, 2021.（REPORT の [R5]）
+- **[S6]** McKenna, Mullins, Sheldon, Miklau. *AIM*. PVLDB, 2022.（REPORT の [R6]）
+- **[S19]** Dong, Roth, Su. *Gaussian Differential Privacy*. JRSSB, 2022.（ρ→μ。REPORT の [R19]）
+- **[S_exp]** McSherry, Talwar. *Mechanism Design via Differential Privacy* (指数機構). FOCS, 2007.（原論文 [30]）／ Dwork et al. *Our data, ourselves* も参照（原論文 [12]）
+- **[S_gauss]** ガウス機構（原論文では McSherry & Talwar / Dwork & Roth の文脈で参照）
+- **[S_pgm]** McKenna, Sheldon, Miklau. *Graphical-Model Based Estimation and Inference for DP* (Private-PGM). ICML, 2019.（原論文 [27]）
+- **[S14]** Ganev, Oprisanu, De Cristofaro. *Robin Hood and Matthew Effects*. ICML, 2022.（ドメイン圧縮のバイアス。原論文 [14]）

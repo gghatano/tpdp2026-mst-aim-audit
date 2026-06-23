@@ -85,12 +85,12 @@ G_μ = T( N(0,1), N(μ,1) )
 
 ## 出典対応表（本ページ）
 
-> 採番は REPORT.md の References と共通（[1] は対象論文、[Rn] は参考文献）。本ページ固有の補助タグは [G_code]（上流監査コード由来）。
+> 本ページの出典タグ（[G1] など）はこの表の各項目へリンクする。末尾の「REPORT の [Rn]」は本体レポートの References の対応番号。
 
-- **[1]** = 本ページ表記 [G1]: Ganev, Annamalai, Kulynych. *Tight Auditing of Differential Privacy in MST and AIM*. TPDP 2026. arXiv:2604.18352.
-- **[R19]** = [G19]: Dong, Roth, Su. *Gaussian Differential Privacy*. JRSSB, 2022.（GDP / f-DP / トレードオフ関数・G_μ・Neyman-Pearson・GDP↔DP）
-- **[R20]** = [G20]: Canonne, Kamath, Steinke. *The Discrete Gaussian for Differential Privacy*. NeurIPS, 2020.（保守的な (ε,δ)→ρ-zCDP 変換）
-- **[R7]** = [G7]: Gomez et al. *Position: Gaussian DP for Reporting DP Guarantees in ML*. IEEE SaTML, 2026.（単一 (ε,δ) 報告の限界）
-- **[G2]**: Dwork, Roth. *The Algorithmic Foundations of Differential Privacy*. 2014.（(ε,δ)-DP の定義。原論文 [11]）
-- **[G3]**: Bun, Steinke. *Concentrated Differential Privacy*. TCC, 2016.（ρ-zCDP の定義・zCDP→DP。原論文 [4]）
-- **[G_code]**: 上流監査コード `sassoftware/dpmm` (`audit-dpmm`) の `adp2gdp.py` / `audit_utils.py`（μ̂ の式・(ε,δ)↔μ 数値逆解き）[survey]。
+- **[G1]** Ganev, Annamalai, Kulynych. *Tight Auditing of Differential Privacy in MST and AIM*. TPDP 2026. arXiv:2604.18352.（REPORT の [1] と同一）
+- **[G2]** Dwork, Roth. *The Algorithmic Foundations of Differential Privacy*. 2014.（(ε,δ)-DP の定義。原論文 [11]）
+- **[G3]** Bun, Steinke. *Concentrated Differential Privacy*. TCC, 2016.（ρ-zCDP の定義・zCDP→DP。原論文 [4]）
+- **[G7]** Gomez et al. *Position: Gaussian DP for Reporting DP Guarantees in ML*. IEEE SaTML, 2026.（単一 (ε,δ) 報告の限界。REPORT の [R7]）
+- **[G19]** Dong, Roth, Su. *Gaussian Differential Privacy*. JRSSB, 2022.（GDP / f-DP / トレードオフ関数・G_μ・Neyman-Pearson・GDP↔DP。REPORT の [R19]）
+- **[G20]** Canonne, Kamath, Steinke. *The Discrete Gaussian for Differential Privacy*. NeurIPS, 2020.（保守的な (ε,δ)→ρ-zCDP 変換。REPORT の [R20]）
+- **[G_code]** 上流監査コード `sassoftware/dpmm` (`audit-dpmm`) の `adp2gdp.py` / `audit_utils.py`（μ̂ の式・(ε,δ)↔μ 数値逆解き）。

@@ -303,3 +303,11 @@ uv run python scripts/build_html.py
 - **[R18]** Zanella-Beguelin, Wutschitz, Tople, Salem, Ruhle, Paverd, Naseri, Kopf, Jones. Bayesian Estimation of Differential Privacy. ICML, 2023.（原論文 [42]。joint Bayesian μ 推定）
 - **[R19]** Dong, Roth, Su. Gaussian Differential Privacy. JRSSB, 2022.（原論文 [10]。GDP の定義）
 - **[R20]** Canonne, Kamath, Steinke. The Discrete Gaussian for Differential Privacy. NeurIPS, 2020.（原論文 [5]。(ε,δ)→ρ-zCDP の保守的変換）
+
+### 一次資料（本リポジトリ内）
+
+本文の `[survey]`・`[計画]`・`[規約]` タグの参照先。
+
+- **[survey]** 調査メモ: [docs/research/issue-18-survey.md](https://github.com/gghatano/tpdp2026-mst-aim-audit/blob/main/docs/research/issue-18-survey.md)
+- **[計画]** 実験計画: [docs/plans/issue-18-plan.md](https://github.com/gghatano/tpdp2026-mst-aim-audit/blob/main/docs/plans/issue-18-plan.md)
+- **[規約]** 記述・実験の規約: [.claude/docs/documentation-conventions.md](https://github.com/gghatano/tpdp2026-mst-aim-audit/blob/main/.claude/docs/documentation-conventions.md)

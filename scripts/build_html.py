@@ -142,6 +142,44 @@ def style_badges(html: str) -> str:
     return re.sub(r"<blockquote>(\s*)<p>(📘|🔎|📑)", repl, html)
 
 
+# 日本語以外でも安全な fragment id を作る（非 ASCII は別名へ）
+_AUX_SLUG = {"survey": "survey", "計画": "plan", "規約": "conv"}
+
+
+def _cite_slug(cid: str) -> str:
+    if cid in _AUX_SLUG:
+        return _AUX_SLUG[cid]
+    return re.sub(r"[^0-9A-Za-z_]", "_", cid)
+
+
+def link_citations(html: str) -> str:
+    """本文中の出典タグ [1]・[R1]・[survey] 等を、下部の文献エントリへのリンクにする。
+
+    参照定義は Markdown の `**[ID]**`（→ <strong>[ID]</strong>）で書かれた行。そこから
+    有効な ID 集合を集め、(1) 定義側に id アンカーを付け、(2) 本文中の素の [ID] を
+    `<a href="#ref-slug">[ID]</a>` に変換する。CSS の `a[href^="#ref"]` で上付きチップ化される。
+    定義に無いタグ（例: 論文内部引用 [24]）は変換しない。
+    """
+    ids = re.findall(r"<strong>\[([^\]]+)\]</strong>", html)
+    if not ids:
+        return html
+    # (1) 定義側にアンカーを付与
+    seen = set()
+
+    def anchor(m: re.Match) -> str:
+        cid = m.group(1)
+        seen.add(cid)
+        return f'<strong id="ref-{_cite_slug(cid)}">[{cid}]</strong>'
+
+    html = re.sub(r"<strong>\[([^\]]+)\]</strong>", anchor, html)
+
+    # (2) 本文中の素の [ID] をリンク化（長い ID から処理。タグ直後・既存アンカー内は除外）
+    for cid in sorted(seen, key=len, reverse=True):
+        pat = re.compile(r'(?<![">\w])\[' + re.escape(cid) + r'\](?![\(<\w])')
+        html = pat.sub(lambda m, c=cid: f'<a href="#ref-{_cite_slug(c)}">[{c}]</a>', html)
+    return html
+
+
 CSS = """
 :root { --fg:#1a1a1a; --muted:#666; --accent:#c0392b; --line:#e3e3e3; --bg:#fff; --code:#f6f8fa; --sidebar:#fbfbfc; }
 * { box-sizing: border-box; }
@@ -226,6 +264,7 @@ def render(page: dict, pages: list[dict]) -> str:
     body = inject_mermaid(body, mermaid_blocks)
     body = rewrite_links(body, pages, cfg["repo_url"])
     body = style_badges(body)
+    body = link_citations(body)
     toc = md.toc
     nav = build_nav(page["key"], pages)
     upstream = (f' · Upstream: <a href="{cfg["upstream_url"]}">{cfg["upstream_url"]}</a>'
