@@ -108,7 +108,7 @@ footer { max-width: 1180px; margin: 0 auto; padding: 24px; color: var(--muted); 
 </nav>
   <article><h1 id="mst-aim-gdp-tight-arxiv260418352">MST / AIM の差分プライバシーを GDP で tight に監査する：論文 arXiv:2604.18352 の縮小追試</h1>
 <blockquote>
-<p>対象 = MST / AIM（DP 合成データ生成器） ／ 対象論文 = <em>Tight Auditing of Differential Privacy in MST and AIM</em>（<a href="https://arxiv.org/abs/2604.18352">arXiv:2604.18352</a>, TPDP 2026）[1] ／ リポジトリ = <a href="https://github.com/gghatano/tpdp2026-mst-aim-audit">https://github.com/gghatano/tpdp2026-mst-aim-audit</a> ／ 最終更新 = 2026-06-19</p>
+<p>対象 = MST / AIM（DP 合成データ生成器） ／ 対象論文 = <em>Tight Auditing of Differential Privacy in MST and AIM</em>（<a href="https://arxiv.org/abs/2604.18352">arXiv:2604.18352</a>, TPDP 2026）[1] ／ リポジトリ = <a href="https://github.com/gghatano/tpdp2026-mst-aim-audit">https://github.com/gghatano/tpdp2026-mst-aim-audit</a> ／ 最終更新 = 2026-06-20</p>
 <p>⚠️ <strong>ステータス注記</strong>: 本レポートは<strong>中間報告</strong>である。実験スコープは A（dpmm 単体での MST/AIM 合成デモ）＋ B（監査の縮小再現、out/in 各 1,125 試行）に限定し、数値完全一致でなく<strong>傾向の再現</strong>を目標とする。記載数値は測定済みのもの（<a href="https://github.com/gghatano/tpdp2026-mst-aim-audit/blob/main/outputs/metrics.json">outputs/metrics.json</a>）。完全再現 C（10,000 fit）・AIM/高次 marginal（付録 A 相当）は当面スコープ外である。<strong>DP ノイズは secure RNG のため特徴生成は run 間でビット非再現</strong>だが、集約 μ_emp は安定する（<a href="setup.html">SETUP.md</a> 再現性節）。</p>
 </blockquote>
 <hr />
@@ -224,7 +224,7 @@ footer { max-width: 1180px; margin: 0 auto; padding: 24px; color: var(--muted); 
 </table>
 <p><strong>所要時間（実測）</strong>: MST 1 fit ≈ 9.2 秒（単体）、18 並列での実効スループットは <strong>約 1.24 秒/fit</strong>（<a href="https://github.com/gghatano/tpdp2026-mst-aim-audit/blob/main/outputs/">outputs</a> のメタ参照）。2,250 fit で実時間 約 30–40 分相当。実行環境が長時間バックグラウンドジョブを <strong>約 10–15 分で打ち切る</strong>ため、チェックポイント＋resume 方式（落ちても完了分を保存し再開で積み増す）で 1,125/side まで到達した（<a href="https://github.com/gghatano/tpdp2026-mst-aim-audit/blob/main/scripts/01_run_attack.py">scripts/01_run_attack.py</a>）。フル再現 C（10,000 fit）は同条件で概ね <strong>2–3 時間規模</strong>と外挿される。</p>
 <blockquote class="badge-note">
-<p>🔎 <strong>書き分けの含意</strong>: 「縮小＝計算節約」が当てはまるのは N_ALL とシードのみである。単一 (ε,δ) と one-way 制限は計算ではなく<strong>スコープ・理論的正当性</strong>による選択であり、後者は主結果の妥当性を損なわない（むしろ AIM もカバーする）[1][計画]。なお本暫定報告の N_ALL=500/side は原論文（5,000/side）より 1 桁小さく、§5 の統計的限界が強く効く点に注意。</p>
+<p>🔎 <strong>書き分けの含意</strong>: 「縮小＝計算節約」が当てはまるのは N_ALL とシードのみである。単一 (ε,δ) と one-way 制限は計算ではなく<strong>スコープ・理論的正当性</strong>による選択であり、後者は主結果の妥当性を損なわない（むしろ AIM もカバーする）[1][計画]。</p>
 </blockquote>
 <hr />
 <h2 id="3">3. 結果</h2>
