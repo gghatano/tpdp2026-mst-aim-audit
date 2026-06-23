@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>メンバーシップ推論による DP 監査 —— distinguishing game と経験的下界</title>
+<title>メンバーシップ推論による DP 監査: distinguishing game と経験的下界</title>
 <style>
 :root { --fg:#1a1a1a; --muted:#666; --accent:#c0392b; --line:#e3e3e3; --bg:#fff; --code:#f6f8fa; --sidebar:#fbfbfc; }
 * { box-sizing: border-box; }
@@ -58,7 +58,7 @@ footer { max-width: 1180px; margin: 0 auto; padding: 24px; color: var(--muted); 
 </head>
 <body>
 <header class="hero"><div class="inner">
-  <h1>メンバーシップ推論による DP 監査 —— distinguishing game と経験的下界</h1>
+  <h1>メンバーシップ推論による DP 監査: distinguishing game と経験的下界</h1>
   <p>メンバーシップ推論による経験的 DP 監査</p>
 </div><nav class="nav"><a href="index.html">📄 論文レポート</a><a href="gdp.html">🔧 GDP/トレードオフ</a><a href="mia.html" class="active">🔧 監査の仕組み</a><a href="mstaim.html">🔧 MST/AIM</a><a href="setup.html">⚙️ 環境構築・再現</a></nav></header>
 <div class="layout">
@@ -75,7 +75,7 @@ footer { max-width: 1180px; margin: 0 auto; padding: 24px; color: var(--muted); 
 </ul>
 </div>
 </nav>
-  <article><h1 id="dp-distinguishing-game">メンバーシップ推論による DP 監査 —— distinguishing game と経験的下界</h1>
+  <article><h1 id="dp-distinguishing-game">メンバーシップ推論による DP 監査: distinguishing game と経験的下界</h1>
 <blockquote>
 <p>技術解説ページ（モードA）。<a href="index.html">REPORT.md</a> §2.1・§2.3・§2.4 から参照される補助資料。図ラベルは英語、本文は日本語。事実は出典タグ <code>[n]</code>（末尾の対応表）、筆者の補足は 🔎。</p>
 </blockquote>
@@ -97,7 +97,7 @@ footer { max-width: 1180px; margin: 0 auto; padding: 24px; color: var(--muted); 
 </ol>
 <p>この (FPR, FNR) を理論フロンティアと比較し、μ-GDP の経験的 μ に変換する[1]（→ <a href="gdp.html">methods/gdp-and-tradeoff.md</a>）。</p>
 <h2 id="3-strong-adversary">3. 強敵対者モデル（strong adversary）</h2>
-<p>DP の保証は<strong>強敵対者</strong>——機構 M と 2 つの隣接データセット x, x' を知り、ただ「どちらが使われたか」だけを知らない敵——に対して成り立つことを要求する[A19]。監査もこの強敵対者を模す。本手法の敵対者は hybrid black/white-box である[1]:</p>
+<p>DP の保証は<strong>強敵対者</strong>（機構 M と 2 つの隣接データセット x, x' を知り、ただ「どちらが使われたか」だけを知らない敵）に対して成り立つことを要求する[A19]。監査もこの強敵対者を模す。本手法の敵対者は hybrid black/white-box である[1]:</p>
 <ul>
 <li><strong>黒箱特徴</strong>: 合成データに対し離散ドメインの<strong>全クエリ</strong>を評価したカウント（Query-based MIA [A17] に従う）[1]。</li>
 <li><strong>白箱特徴</strong>: モデル内部の <strong>noisy one-way marginal counts</strong>[1]。</li>
@@ -121,7 +121,7 @@ footer { max-width: 1180px; margin: 0 auto; padding: 24px; color: var(--muted); 
 <p>強プライバシー領域（ε=1 など）では信号（漏洩）が小さく、攻撃の (FPR,FNR) が理論境界に届きにくい。従来研究は MST に対し、同領域で<strong>緩い、しばしばゼロの経験的推定</strong>しか得られなかった[1][A1]。</p>
 <p>本手法はその主因を<strong>閾値選択の不安定さ</strong>と特定する[1]: 推定 μ̂ を validation で最大化するような不安定な基準を使うと、<strong>過度に小さい閾値</strong>が選ばれて FPR が過大になり、経験的下界が<strong>ゼロに潰れる</strong>[1]。これが従来の μ_emp=0 の原因と説明される。これに対し、advantage（TPR−FPR）を最大化する基準は閾値に対して滑らかで安定に振る舞い、tight な下界を与える[1]。</p>
 <blockquote class="badge-note">
-<p>🔎 <strong>再現の焦点</strong>: 本追試（縮小版）は、(1) μ_emp が implied μ=0.45 の近傍に来ること、(2) 閾値選択基準を不安定なものに変えると μ_emp が 0 に潰れること——という 2 つの<strong>傾向</strong>の再現を目標にする[計画]。数値完全一致は狙わない。</p>
+<p>🔎 <strong>再現の焦点</strong>: 本追試（縮小版）は、(1) μ_emp が implied μ=0.45 の近傍に来ること、(2) 閾値選択基準を不安定なものに変えると μ_emp が 0 に潰れること、という 2 つの<strong>傾向</strong>の再現を目標にする[計画]。数値完全一致は狙わない。</p>
 </blockquote>
 <h2 id="7">7. まとめ（このページの主張）</h2>
 <ul>

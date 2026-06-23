@@ -1,6 +1,6 @@
 # tpdp2026-mst-aim-audit
 
-**MST / AIM の差分プライバシー保証を Gaussian DP (GDP) で tight に監査する**——
+**MST / AIM の差分プライバシー保証を Gaussian DP (GDP) で tight に監査する。**
 論文 *Tight Auditing of Differential Privacy in MST and AIM* (Ganev, Annamalai, Kulynych, [arXiv:2604.18352](https://arxiv.org/abs/2604.18352), TPDP 2026) の調査・再現実験リポジトリ。
 
 > ⚠️ **ステータス: 進行中（自律実験セッション）**。測定済みの数値のみ記載し、未実施は「未測定」と明記する。

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GDP / f-DP / FPR–FNR トレードオフ ——（ε,δ）から μ への橋渡し</title>
+<title>GDP / f-DP / FPR–FNR トレードオフ:（ε,δ）から μ への橋渡し</title>
 <style>
 :root { --fg:#1a1a1a; --muted:#666; --accent:#c0392b; --line:#e3e3e3; --bg:#fff; --code:#f6f8fa; --sidebar:#fbfbfc; }
 * { box-sizing: border-box; }
@@ -58,7 +58,7 @@ footer { max-width: 1180px; margin: 0 auto; padding: 24px; color: var(--muted); 
 </head>
 <body>
 <header class="hero"><div class="inner">
-  <h1>GDP / f-DP / FPR–FNR トレードオフ ——（ε,δ）から μ への橋渡し</h1>
+  <h1>GDP / f-DP / FPR–FNR トレードオフ:（ε,δ）から μ への橋渡し</h1>
   <p>(ε,δ)-DP → ρ-zCDP → μ-GDP と FPR-FNR トレードオフ関数</p>
 </div><nav class="nav"><a href="index.html">📄 論文レポート</a><a href="gdp.html" class="active">🔧 GDP/トレードオフ</a><a href="mia.html">🔧 監査の仕組み</a><a href="mstaim.html">🔧 MST/AIM</a><a href="setup.html">⚙️ 環境構築・再現</a></nav></header>
 <div class="layout">
@@ -81,12 +81,12 @@ footer { max-width: 1180px; margin: 0 auto; padding: 24px; color: var(--muted); 
 </ul>
 </div>
 </nav>
-  <article><h1 id="gdp-f-dp-fprfnr">GDP / f-DP / FPR–FNR トレードオフ ——（ε,δ）から μ への橋渡し</h1>
+  <article><h1 id="gdp-f-dp-fprfnr">GDP / f-DP / FPR–FNR トレードオフ:（ε,δ）から μ への橋渡し</h1>
 <blockquote>
 <p>技術解説ページ（モードA）。本ページは <a href="index.html">REPORT.md</a> §2.1・§2.5 から参照される補助資料である。図ラベルは英語、本文は日本語。数式は最小限に留め、直感を優先する。事実は出典タグ <code>[n]</code>（本ページ末尾の対応表参照）、筆者の補足解釈は 🔎 で示す。</p>
 </blockquote>
 <h2 id="1">1. なぜ単一の (ε,δ) でなく「曲線」で見るのか</h2>
-<p>差分プライバシー（DP）は本来、機構の出力が任意の 1 レコードの有無に対して区別しにくいことを保証する[G2]。この「区別しにくさ」は、本質的には<strong>仮説検定</strong>の難しさである——「対象レコードが入っていたか（in）／いなかったか（out）」を当てる検定をどれだけ失敗させられるか。</p>
+<p>差分プライバシー（DP）は本来、機構の出力が任意の 1 レコードの有無に対して区別しにくいことを保証する[G2]。この「区別しにくさ」は、本質的には<strong>仮説検定</strong>の難しさである。「対象レコードが入っていたか（in）／いなかったか（out）」を当てる検定をどれだけ失敗させられるか、という問いに帰着する。</p>
 <p>検定の性能は 1 つの数では表せない。<strong>偽陽性率 FPR（α）</strong> と <strong>偽陰性率 FNR（β）</strong> の間にはトレードオフがあり、片方を下げれば他方が上がる。単一の (ε,δ) 値はこのトレードオフ曲線の「一点」あるいは粗い包絡しか与えず、不完全または誤解を招く結論につながりうる[G7]。そこで本手法は、プライバシーを <strong>FPR–FNR トレードオフ曲線全体</strong>として測る[G1]。</p>
 <blockquote class="badge-note">
 <p>🔎 <strong>直感</strong>: 監査とは「実装に対する最良の攻撃」を試み、その攻撃の (FPR, FNR) が理論上どこまで良くなりうるかの境界に届くかを見る作業である。境界に届くほど監査は tight（緩みがない）。</p>
@@ -113,7 +113,7 @@ footer { max-width: 1180px; margin: 0 auto; padding: 24px; color: var(--muted); 
 </code></pre></div>
 
 <p>であり[G19]、機構 M が μ-GDP とは「すべての隣接 x,x' で <code>T(M(x),M(x'))(α) ≥ G_μ(α)</code>（曲線が G_μ より上）」を意味する[G19]。</p>
-<p>任意の MIA は必ず <code>FPR + FNR ≥ 1 − （達成可能な最大 advantage）</code> の制約、より基本的には <code>α ≤ β</code> 型の関係に縛られる——重要なのは、<strong>どんな攻撃も理論トレードオフ境界を超えられない</strong>点である[G19]。監査はこの境界に経験的に「どこまで近づけるか」を測る。</p>
+<p>任意の MIA は必ず <code>FPR + FNR ≥ 1 − （達成可能な最大 advantage）</code> の制約、より基本的には <code>α ≤ β</code> 型の関係に縛られる。重要なのは、<strong>どんな攻撃も理論トレードオフ境界を超えられない</strong>点である[G19]。監査はこの境界に経験的に「どこまで近づけるか」を測る。</p>
 <h3 id="31-fpr-fnr">3.1 経験的 (FPR, FNR) から μ への点推定</h3>
 <p>攻撃分類器の test 上の (FPR, FNR) から、GDP のトレードオフ曲線を逆に解いて点推定</p>
 <div class="codehilite"><pre><span></span><code>μ̂ = Φ⁻¹(1 − FPR) − Φ⁻¹(FNR)
@@ -132,7 +132,7 @@ footer { max-width: 1180px; margin: 0 auto; padding: 24px; color: var(--muted); 
 <p>を μ について数値的に逆解き（例: brentq）して得る[G_code][G19]。こちらはより大きい μ（弱いプライバシー）を与える[G1]。</p>
 <p>両者の差は、中間の zCDP ステップで使う (ε,δ)→ρ 変換が<strong>数値安定だが保守的</strong>[G20]であることに由来する。結果として内部経路は同じ入力 (ε,δ) に対しわずかに強いプライバシー（小さい μ）を強制し、同じ予算での有用性をいくらか犠牲にしうる[G1]。</p>
 <blockquote class="badge-note">
-<p>🔎 <strong>監査上の含意</strong>: 経験的曲線が <strong>どちらの理論線に一致するか</strong>が診断になる。本手法では経験的曲線が accounting path（implied μ）の側に沿う——すなわち実装が自身のプライバシー解析と整合（tight）——ことが主結果である[G1]。</p>
+<p>🔎 <strong>監査上の含意</strong>: 経験的曲線が <strong>どちらの理論線に一致するか</strong>が診断になる。本手法では経験的曲線が accounting path（implied μ）の側に沿う、すなわち実装が自身のプライバシー解析と整合（tight）していることが主結果である[G1]。</p>
 </blockquote>
 <h2 id="5">5. まとめ（このページの主張）</h2>
 <ul>

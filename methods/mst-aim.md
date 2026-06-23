@@ -1,4 +1,4 @@
-# MST / AIM の仕組み —— select-measure-generate と PGM
+# MST / AIM の仕組み: select-measure-generate と PGM
 
 > 技術解説ページ（モードA）。[REPORT.md](content/REPORT.md) §2.2・§2.6 から参照される補助資料。図ラベルは英語、本文は日本語。事実は出典タグ `[n]`（末尾の対応表）、筆者の補足は 🔎。
 
